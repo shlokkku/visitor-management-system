@@ -1,0 +1,97 @@
+  console.error
+    ❌ Database connection failed: Error: Access denied for user 'root'@'localhost' (using password: NO)
+        at Packet.asError (C:\pbl2\server\node_modules\mysql2\lib\packets\packet.js:740:17)
+        at ClientHandshake.execute (C:\pbl2\server\node_modules\mysql2\lib\commands\command.js:29:26)
+        at PoolConnection.handlePacket (C:\pbl2\server\node_modules\mysql2\lib\base\connection.js:475:34)
+        at PacketParser.onPacket (C:\pbl2\server\node_modules\mysql2\lib\base\connection.js:93:12)
+        at PacketParser.executeStart (C:\pbl2\server\node_modules\mysql2\lib\packet_parser.js:75:16)
+        at Socket.<anonymous> (C:\pbl2\server\node_modules\mysql2\lib\base\connection.js:100:25)
+        at Socket.emit (node:events:519:28)
+        at addChunk (node:internal/streams/readable:559:12)
+        at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+        at Socket.Readable.push (node:internal/streams/readable:390:5)
+        at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+      code: 'ER_ACCESS_DENIED_ERROR',
+      errno: 1045,
+      sqlState: '28000',
+      sqlMessage: "Access denied for user 'root'@'localhost' (using password: NO)",
+      sql: undefined
+    }
+
+    [0m [90m 55 |[39m     connection[33m.[39mrelease()[33m;[39m
+     [90m 56 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 57 |[39m     console[33m.[39merror([32m'❌ Database connection failed:'[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 58 |[39m     process[33m.[39mexit([35m1[39m)[33m;[39m
+     [90m 59 |[39m   }
+     [90m 60 |[39m }[0m
+
+      at error (GoCodeo-index_testConnection_test_testConnection.test.js:57:13)
+
+  console.error
+    ❌ Database connection failed: Error: Access denied for user 'root'@'localhost' (using password: NO)
+        at Packet.asError (C:\pbl2\server\node_modules\mysql2\lib\packets\packet.js:740:17)
+        at ClientHandshake.execute (C:\pbl2\server\node_modules\mysql2\lib\commands\command.js:29:26)
+        at PoolConnection.handlePacket (C:\pbl2\server\node_modules\mysql2\lib\base\connection.js:475:34)
+        at PacketParser.onPacket (C:\pbl2\server\node_modules\mysql2\lib\base\connection.js:93:12)
+        at PacketParser.executeStart (C:\pbl2\server\node_modules\mysql2\lib\packet_parser.js:75:16)
+        at Socket.<anonymous> (C:\pbl2\server\node_modules\mysql2\lib\base\connection.js:100:25)
+        at Socket.emit (node:events:519:28)
+        at addChunk (node:internal/streams/readable:559:12)
+        at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+        at Socket.Readable.push (node:internal/streams/readable:390:5)
+        at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+      code: 'ER_ACCESS_DENIED_ERROR',
+      errno: 1045,
+      sqlState: '28000',
+      sqlMessage: "Access denied for user 'root'@'localhost' (using password: NO)",
+      sql: undefined
+    }
+
+    [0m [90m 55 |[39m     connection[33m.[39mrelease()[33m;[39m
+     [90m 56 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 57 |[39m     console[33m.[39merror([32m'❌ Database connection failed:'[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 58 |[39m     process[33m.[39mexit([35m1[39m)[33m;[39m
+     [90m 59 |[39m   }
+     [90m 60 |[39m }[0m
+
+      at error (GoCodeo-index_testConnection_test_testConnection.test.js:57:13)
+      at Object.<anonymous> (GoCodeo-index_testConnection_test_testConnection.test.js:519:4)
+
+FAIL ./GoCodeo-index_testConnection_test_testConnection.test.js
+  testConnection
+    × should log success message and not exit (73 ms)
+
+  ● testConnection › should log success message and not exit
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "✅ Database connected successfully"
+    Received: "
+        ====================================
+        🚀 Server running on port 5000
+        📁 Environment: test
+        ====================================
+      "
+
+    Number of calls: 1
+
+    [0m [90m 518 |[39m 			[36mconst[39m exitSpy [33m=[39m jest[33m.[39mspyOn(process[33m,[39m [32m'exit'[39m)[33m.[39mmockImplementation()[33m;[39m
+     [90m 519 |[39m 			[36mawait[39m testConnection()[33m;[39m
+    [31m[1m>[22m[39m[90m 520 |[39m 			expect(consoleLog)[33m.[39mtoHaveBeenCalledWith([32m'✅ Database connected successfully'[39m)[33m;[39m
+     [90m     |[39m 			                   [31m[1m^[22m[39m
+     [90m 521 |[39m 			expect(exitSpy)[33m.[39mnot[33m.[39mtoHaveBeenCalled()[33m;[39m
+     [90m 522 |[39m 			exitSpy[33m.[39mmockRestore()[33m;[39m
+     [90m 523 |[39m 		})[33m;[39m[0m
+
+      at Object.toHaveBeenCalledWith (GoCodeo-index_testConnection_test_testConnection.test.js:520:23)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Snapshots:   0 total
+Time:        0.893 s, estimated 1 s
+Ran all test suites matching /GoCodeo-index_testConnection_test_testConnection.test.js/i.
+Jest did not exit one second after the test run has completed.
+
+'This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.
