@@ -38,7 +38,8 @@ const SignIn = () => {
           <input 
             className="input" 
             type="email" 
-            placeholder required 
+            placeholder="" 
+            required 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -49,7 +50,8 @@ const SignIn = () => {
           <input 
             className="input" 
             type="password" 
-            placeholder required 
+            placeholder="" 
+            required 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -80,7 +82,7 @@ const StyledWrapper = styled.div`
     flex-direction: column;
     gap: 10px;
     width: 405px;
-    max-width:90;
+    max-width: 90%;
     background-color: #fff;
     padding: 50px;
     border-radius: 35px;
