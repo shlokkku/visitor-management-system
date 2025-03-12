@@ -1,34 +1,141 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import Button from './Button'; // Import the Button component
+import axios from 'axios'; // You'll need to install axios: npm install axios
+
+// Set the base URL for your API
+// Change this to match your actual backend server address
+const API_BASE_URL = 'http://localhost:5000'; // Typical Node.js/Express server port
 
 const Signup = () => {
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [formData, setFormData] = useState({
+    firstname: '',
+    lastname: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    
+    // Basic validation
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Prepare data for backend
+      const userData = {
+        name: `${formData.firstname} ${formData.lastname}`,
+        email: formData.email,
+        password: formData.password,
+        role: 'staff' // Default role as per your backend
+      };
+
+      console.log('Sending signup request to:', `${API_BASE_URL}/api/auth/signup`);
+      console.log('User data:', userData);
+
+      // Send data to backend with the full URL
+      const response = await axios.post(`${API_BASE_URL}/api/auth/signup`, userData, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true // Important for cookies to be set properly across domains
+      });
+      
+      console.log('Signup response:', response.data);
+      setSuccess('Registration successful! Redirecting to dashboard...');
+      
+      // Optional: Redirect after a delay
+      setTimeout(() => {
+        window.location.href = '/dashboard'; // Or use React Router's navigate
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Signup error:', error);
+      
+      if (error.response && error.response.data) {
+        setError(error.response.data.message || 'Registration failed');
+      } else {
+        setError('Network error. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <StyledWrapper>
-      <form className="form">
+      <form className="form" onSubmit={handleSubmit}>
         <p className="title">Register </p>
         <p className="message">Sign up now and get full access to our app. </p>
+        
+        {error && <p className="error-message">{error}</p>}
+        {success && <p className="success-message">{success}</p>}
+        
         <div className="flex">
           <label>
-            <input className="input" type="text" placeholder required />
+            <input 
+              className="input" 
+              type="text" 
+              name="firstname"
+              value={formData.firstname}
+              onChange={handleChange}
+              placeholder="" 
+              required 
+            />
             <span>Firstname</span>
           </label>
           <label>
-            <input className="input" type="text" placeholder required />
+            <input 
+              className="input" 
+              type="text" 
+              name="lastname"
+              value={formData.lastname}
+              onChange={handleChange}
+              placeholder="" 
+              required 
+            />
             <span>Lastname</span>
           </label>
         </div>  
         <label>
-          <input className="input" type="email" placeholder required />
+          <input 
+            className="input" 
+            type="email" 
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="" 
+            required 
+          />
           <span>Email</span>
         </label> 
         <label>
           <input 
             className="input" 
             type="password" 
-            placeholder 
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="" 
             required 
             pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}" 
             title="Password must be at least 8 characters long, contain at least one digit, one lowercase letter, one uppercase letter, and one special character." 
@@ -43,10 +150,20 @@ const Signup = () => {
           </p>
         )}
         <label>
-          <input className="input" type="password" placeholder required />
+          <input 
+            className="input" 
+            type="password" 
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            placeholder="" 
+            required 
+          />
           <span>Confirm password</span>
         </label>
-        <button className="submit">Submit</button>
+        <button className="submit" type="submit" disabled={loading}>
+          {loading ? 'Signing up...' : 'Submit'}
+        </button>
         <Button /> {/* Add the Button component here */}
         <p className="signin">Already have an account? <a href="/signin">Sign In</a> </p>
       </form>
@@ -55,6 +172,7 @@ const Signup = () => {
 }
 
 const StyledWrapper = styled.div`
+  /* Styling remains the same as before */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -150,6 +268,20 @@ const StyledWrapper = styled.div`
     margin-bottom: 10px;
   }
 
+  .error-message {
+    color: #d32f2f;
+    font-size: 0.9em;
+    text-align: center;
+    margin: 5px 0;
+  }
+
+  .success-message {
+    color: #388e3c;
+    font-size: 0.9em;
+    text-align: center;
+    margin: 5px 0;
+  }
+
   .submit {
     border: none;
     outline: none;
@@ -164,6 +296,11 @@ const StyledWrapper = styled.div`
 
   .submit:hover {
     background-color: rgb(56, 90, 194);
+  }
+
+  .submit:disabled {
+    background-color: #b0b0b0;
+    cursor: not-allowed;
   }
 
   .google-button {
