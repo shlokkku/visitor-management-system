@@ -256,7 +256,7 @@ app.post(
         
         // Validate role
         const allowedRoles = ['user', 'staff', 'admin'];
-        const userRole = role && allowedRoles.includes(role) ? role : 'user';
+        const userRole = role && allowedRoles.includes(role) ? role : 'admin';
         
         // Hash password
         const salt = await bcrypt.genSalt(12);

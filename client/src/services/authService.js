@@ -23,10 +23,12 @@ const api = axios.create({
 export const signin = async (email, password) => {
   try {
     const response = await api.post('/api/auth/signin', { email, password });
+    console.log("API Response:", response.data);
     
     // Store user data in localStorage if needed
     if (response.data.user) {
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      console.log("Stored user data:", response.data.user);
     }
     
     return response.data;

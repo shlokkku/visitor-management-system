@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import Button from './Button'; // Import the Button component
-import axios from 'axios'; // You'll need to install axios: npm install axios
-
-// Set the base URL for your API
-// Change this to match your actual backend server address
-const API_BASE_URL = 'http://localhost:5000'; // Typical Node.js/Express server port
+import Button from './Button';
+import { signup } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
@@ -19,12 +16,30 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const signupSuccess = (data) => {
+    // Store token if it's returned from the backend
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
+    
+    // The user data is already stored in localStorage by your signup function
+    // You could add additional success logic here if needed
+    
+    setSuccess('Registration successful! Redirecting to dashboard...');
+    
+    // Redirect after a delay
+    setTimeout(() => {
+      navigate('/admin');
+    }, 2000);
   };
 
   const handleSubmit = async (e) => {
@@ -46,27 +61,19 @@ const Signup = () => {
         name: `${formData.firstname} ${formData.lastname}`,
         email: formData.email,
         password: formData.password,
-        role: 'staff' // Default role as per your backend
+        role: 'admin' // Default role as per your backend
       };
 
-      console.log('Sending signup request to:', `${API_BASE_URL}/api/auth/signup`);
-      console.log('User data:', userData);
-
-      // Send data to backend with the full URL
-      const response = await axios.post(`${API_BASE_URL}/api/auth/signup`, userData, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true // Important for cookies to be set properly across domains
-      });
+      // Use the signup function from authService instead of axios directly
+      const data = await signup(
+        userData.name,
+        userData.email, 
+        userData.password, 
+        userData.role
+      );
       
-      console.log('Signup response:', response.data);
-      setSuccess('Registration successful! Redirecting to dashboard...');
-      
-      // Optional: Redirect after a delay
-      setTimeout(() => {
-        window.location.href = '/dashboard'; // Or use React Router's navigate
-      }, 2000);
+      // Handle successful signup
+      signupSuccess(data);
       
     } catch (error) {
       console.error('Signup error:', error);
@@ -164,12 +171,14 @@ const Signup = () => {
         <button className="submit" type="submit" disabled={loading}>
           {loading ? 'Signing up...' : 'Submit'}
         </button>
-        <Button /> {/* Add the Button component here */}
+        <Button /> 
         <p className="signin">Already have an account? <a href="/signin">Sign In</a> </p>
       </form>
     </StyledWrapper>
   );
-}
+};
+
+
 
 const StyledWrapper = styled.div`
   /* Styling remains the same as before */
