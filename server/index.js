@@ -9,14 +9,36 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
+const connectMongo = require('./config/db.mongo'); // Adjust path if needed
+connectMongo();
 
-// Initialize express app
 const app = express();
+// CORS configuration
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5174',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+
+
+
 
 // Security middleware
 app.use(helmet()); // Add security headers
 app.use(express.json({ limit: '10kb' })); // Limit JSON body size
 app.use(cookieParser());
+
+const visitorLogsRouter = require('./routes/visitorLogs'); // Adjust path as needed
+app.use('/api/visitorlogs', visitorLogsRouter);
+
+const noticeRouter = require('./routes/notices');
+const duesRouter = require('./routes/dues');
+
+app.use('/api/notices', noticeRouter);
+app.use('/api/dues', duesRouter);
 
 // Rate limiting
 const authLimiter = rateLimit({
@@ -28,21 +50,14 @@ const authLimiter = rateLimit({
 // Apply rate limiting to auth routes
 app.use('/api/auth', authLimiter);
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 // Database connection pool with optimized settings
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'root',
+  password: process.env.DB_PASSWORD || 'Bangtanb-123',
   database: process.env.DB_NAME || 'visitormanagement',
-  port: process.env.DB_PORT || 3306,
+  port: process.env.DB_PORT || 5000,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -256,7 +271,7 @@ app.post(
         
         // Validate role
         const allowedRoles = ['user', 'staff', 'admin'];
-        const userRole = role && allowedRoles.includes(role) ? role : 'admin';
+        const userRole = role && allowedRoles.includes(role) ? role : 'user';
         
         // Hash password
         const salt = await bcrypt.genSalt(12);
