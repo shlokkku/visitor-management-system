@@ -1,5 +1,3 @@
-// src/services/authService.js
-
 import axios from 'axios';
 
 // Change this to match your backend server URL
@@ -9,28 +7,29 @@ const API_BASE_URL = 'http://localhost:5000';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  withCredentials: true // Important for cookies to be set properly
+  withCredentials: true, // Important for cookies to be set properly
 });
 
 /**
- * Sign in user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise} Promise with user data
+ * Sign in admin with email and password
+ * @param {string} email - Admin email
+ * @param {string} password - Admin password
+ * @returns {Promise} Promise with admin data
  */
 export const signin = async (email, password) => {
   try {
-    const response = await api.post('/api/auth/signin', { email, password });
-    console.log("API Response:", response.data);
-    
-    // Store user data in localStorage if needed
-    if (response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      console.log("Stored user data:", response.data.user);
+    console.log('Signin Payload:', { email, password }); // Debugging log
+    const response = await api.post('/api/auth/admin/signin', { email, password });
+    console.log('API Response:', response.data);
+
+    // Store admin data in localStorage, including role
+    if (response.data.admin) {
+      localStorage.setItem('user', JSON.stringify(response.data.admin));
+      console.log('Stored admin data:', response.data.admin);
     }
-    
+
     return response.data;
   } catch (error) {
     console.error('Login error:', error);
@@ -39,27 +38,26 @@ export const signin = async (email, password) => {
 };
 
 /**
- * Sign up user with name, email, password and role
- * @param {string} name - User's full name
- * @param {string} email - User email
- * @param {string} password - User password
- * @param {string} role - User role (default: 'staff')
- * @returns {Promise} Promise with user data
+ * Sign up admin with name, email, and password
+ * @param {string} name - Admin's full name
+ * @param {string} email - Admin email
+ * @param {string} password - Admin password
+ * @returns {Promise} Promise with admin data
  */
-export const signup = async (name, email, password, role = 'staff') => {
+export const signup = async (name, email, password) => {
   try {
-    const response = await api.post('/api/auth/signup', {
+    console.log('Signup Payload:', { name, email, password }); // Debugging log
+    const response = await api.post('/api/auth/admin/signup', {
       name,
       email,
       password,
-      role
     });
-    
-    // Store user data in localStorage if needed
+
+    // Store admin data in localStorage if needed
     if (response.data.admin) {
       localStorage.setItem('user', JSON.stringify(response.data.admin));
     }
-    
+
     return response.data;
   } catch (error) {
     console.error('Signup error:', error);
@@ -68,16 +66,16 @@ export const signup = async (name, email, password, role = 'staff') => {
 };
 
 /**
- * Sign out user
+ * Sign out admin
  * @returns {Promise} Promise with success message
  */
 export const signout = async () => {
   try {
     const response = await api.post('/api/auth/signout');
-    
-    // Clear user data from localStorage
+
+    // Clear admin data from localStorage
     localStorage.removeItem('user');
-    
+
     return response.data;
   } catch (error) {
     console.error('Logout error:', error);
@@ -86,13 +84,13 @@ export const signout = async () => {
 };
 
 /**
- * Get current authenticated user
- * @returns {Object|null} User object or null if not authenticated
+ * Get current authenticated admin
+ * @returns {Object|null} Admin object or null if not authenticated
  */
 export const getCurrentUser = () => {
   const userStr = localStorage.getItem('user');
   if (!userStr) return null;
-  
+
   try {
     return JSON.parse(userStr);
   } catch (e) {
@@ -102,7 +100,7 @@ export const getCurrentUser = () => {
 };
 
 /**
- * Check if user is authenticated
+ * Check if admin is authenticated
  * @returns {boolean} True if authenticated, false otherwise
  */
 export const isAuthenticated = () => {
@@ -114,5 +112,5 @@ export default {
   signup,
   signout,
   getCurrentUser,
-  isAuthenticated
+  isAuthenticated,
 };

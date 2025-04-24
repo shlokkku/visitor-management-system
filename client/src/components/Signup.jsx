@@ -5,13 +5,12 @@ import { signup } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
-  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -19,67 +18,41 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    const value = e.target.value.trim(); // Trim whitespace
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: value,
     });
-  };
-
-  const signupSuccess = (data) => {
-    // Store token if it's returned from the backend
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-    }
-    
-    // The user data is already stored in localStorage by your signup function
-    // You could add additional success logic here if needed
-    
-    setSuccess('Registration successful! Redirecting to dashboard...');
-    
-    // Redirect after a delay
-    setTimeout(() => {
-      navigate('/admin');
-    }, 2000);
+    console.log(`Field: ${e.target.name}, Value: ${value}`); // Debugging input values
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    
-    // Basic validation
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
+    const name = `${formData.firstname} ${formData.lastname}`;
+    const email = formData.email;
+    const password = formData.password;
+
+    console.log('Signup Payload:', { name, email, password }); // Debugging payload
+
     try {
       setLoading(true);
-      
-      // Prepare data for backend
-      const userData = {
-        name: `${formData.firstname} ${formData.lastname}`,
-        email: formData.email,
-        password: formData.password,
-        role: 'admin' // Default role as per your backend
-      };
-
-      // Use the signup function from authService instead of axios directly
-      const data = await signup(
-        userData.name,
-        userData.email, 
-        userData.password, 
-        userData.role
-      );
-      
-      // Handle successful signup
-      signupSuccess(data);
-      
-    } catch (error) {
-      console.error('Signup error:', error);
-      
-      if (error.response && error.response.data) {
-        setError(error.response.data.message || 'Registration failed');
+      const data = await signup(name, email, password); // Pass arguments directly
+      console.log('Signup Response:', data); // Debugging backend response
+      setSuccess('Registration successful! Redirecting...');
+      setTimeout(() => navigate('/admin'), 2000);
+    } catch (err) {
+      console.error('Signup error:', err);
+      if (err.response && err.response.data) {
+        console.error('Error Details:', err.response.data); // Debugging backend error
+        setError(err.response.data.message || 'Registration failed');
       } else {
         setError('Network error. Please try again.');
       }
@@ -91,108 +64,83 @@ const Signup = () => {
   return (
     <StyledWrapper>
       <form className="form" onSubmit={handleSubmit}>
-        <p className="title">Register </p>
-        <p className="message">Sign up now and get full access to our app. </p>
-        
+        <p className="title">Register</p>
         {error && <p className="error-message">{error}</p>}
         {success && <p className="success-message">{success}</p>}
-        
         <div className="flex">
           <label>
-            <input 
-              className="input" 
-              type="text" 
+            <input
+              type="text"
               name="firstname"
               value={formData.firstname}
               onChange={handleChange}
-              placeholder="" 
-              required 
+              placeholder="Firstname"
+              required
             />
-            <span>Firstname</span>
           </label>
           <label>
-            <input 
-              className="input" 
-              type="text" 
+            <input
+              type="text"
               name="lastname"
               value={formData.lastname}
               onChange={handleChange}
-              placeholder="" 
-              required 
+              placeholder="Lastname"
+              required
             />
-            <span>Lastname</span>
           </label>
-        </div>  
+        </div>
         <label>
-          <input 
-            className="input" 
-            type="email" 
+          <input
+            type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="" 
-            required 
+            placeholder="Email"
+            required
           />
-          <span>Email</span>
-        </label> 
+        </label>
         <label>
-          <input 
-            className="input" 
-            type="password" 
+          <input
+            type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
-            placeholder="" 
-            required 
-            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}" 
-            title="Password must be at least 8 characters long, contain at least one digit, one lowercase letter, one uppercase letter, and one special character." 
-            onFocus={() => setShowPasswordRequirements(true)}
-            onBlur={() => setShowPasswordRequirements(false)}
+            placeholder="Password"
+            required
           />
-          <span>Password</span>
         </label>
-        {showPasswordRequirements && (
-          <p className="password-requirements">
-            Password must be at least 8 characters long, contain at least one digit, one lowercase letter, one uppercase letter, and one special character.
-          </p>
-        )}
         <label>
-          <input 
-            className="input" 
-            type="password" 
+          <input
+            type="password"
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            placeholder="" 
-            required 
+            placeholder="Confirm Password"
+            required
           />
-          <span>Confirm password</span>
         </label>
-        <button className="submit" type="submit" disabled={loading}>
-          {loading ? 'Signing up...' : 'Submit'}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Signing up...' : 'Sign Up'}
         </button>
-        <Button /> 
-        <p className="signin">Already have an account? <a href="/signin">Sign In</a> </p>
+        <Button />
       </form>
     </StyledWrapper>
   );
 };
 
-
-
 const StyledWrapper = styled.div`
-  /* Styling remains the same as before */
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Full screen height */
-  background-color: #f5f5f5; /* Optional background */
+  height: 100vh;
+  background-color: #f5f5f5;
 
   .form {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-width: 405px;
+    width: 405px;
+    max-width: 90%;
     background-color: #fff;
     padding: 50px;
     border-radius: 35px;
@@ -204,15 +152,7 @@ const StyledWrapper = styled.div`
     font-size: 28px;
     color: royalblue;
     font-weight: 600;
-    letter-spacing: -1px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .title::before, .title::after {
-    display: none; /* Remove misplaced elements */
+    text-align: center;
   }
 
   .message, .signin {
@@ -239,61 +179,56 @@ const StyledWrapper = styled.div`
     position: relative;
   }
 
-  .form label .input {
+  .input {
     width: 100%;
     padding: 20px 12px;
-    outline: 0;
     border: 1px solid rgba(105, 105, 105, 0.397);
     border-radius: 10px;
     font-size: 16px;
+    outline: none;
     transition: 0.3s ease;
-    line-height: normal;
   }
 
-  .form label .input + span {
+  .input + span {
     position: absolute;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
     color: grey;
     font-size: 0.9em;
-    cursor: text;
     transition: 0.3s ease;
     pointer-events: none;
   }
 
-  .form label .input:focus + span, 
-  .form label .input:valid + span {
+  .input:focus + span, 
+  .input:valid + span {
     top: 12px;
     font-size: 0.6em;
     font-weight: 600;
-    color: skyblue;
+    color: #1B0B2C;
   }
 
   .password-requirements {
     font-size: 0.8em;
     color: red;
-    margin-top: -10px;
-    margin-bottom: 10px;
+    margin-top: -5px;
+    margin-bottom: 5px;
   }
 
   .error-message {
-    color: #d32f2f;
-    font-size: 0.9em;
+    color: red;
+    font-size: 14px;
     text-align: center;
-    margin: 5px 0;
   }
 
   .success-message {
     color: #388e3c;
-    font-size: 0.9em;
+    font-size: 14px;
     text-align: center;
-    margin: 5px 0;
   }
 
   .submit {
     border: none;
-    outline: none;
     background-color: royalblue;
     padding: 10px;
     border-radius: 100px;
@@ -314,7 +249,7 @@ const StyledWrapper = styled.div`
 
   .google-button {
     cursor: pointer;
-    text-black;
+    color: black;
     display: flex;
     gap: 5px;
     align-items: center;

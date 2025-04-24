@@ -1,3 +1,4 @@
+//controllers/noticeDues.js
 const db = require('../config/db');
 
 exports.getNotices = async (req, res) => {

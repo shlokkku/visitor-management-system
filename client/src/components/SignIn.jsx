@@ -16,22 +16,21 @@ const SignIn = () => {
     if (data.token) {
       localStorage.setItem('token', data.token);
     }
-    // Additional login success logic can be added here if needed
+    setError('');
+    setTimeout(() => {
+      navigate('/admin'); // Redirect to the admin dashboard
+    }, 2000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
+      // Pass only email and password
       const data = await signin(email, password);
-      console.log("Full signin response:", data); // Changed from response to data
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      console.log("User data stored in localStorage:", storedUser);
-      console.log("User role from stored data:", storedUser?.role);
       loginSuccess(data);
-      navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred');
     } finally {
@@ -81,7 +80,7 @@ const SignIn = () => {
       </form>
     </StyledWrapper>
   );
-}
+};
 
 const StyledWrapper = styled.div`
   display: flex;
