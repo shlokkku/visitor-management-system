@@ -1,4 +1,4 @@
-// server/db.js or server/config/db.js
+//server/config/db.js
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({

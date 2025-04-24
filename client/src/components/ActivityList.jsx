@@ -2,10 +2,9 @@ import React from "react";
 import { Box, Typography, Paper } from "@mui/material";
 
 const ActivityList = ({ activities }) => {
-  // Professional color scheme
-  const primaryColor = "#2c3e50"; // Dark blue/slate
-  const secondaryColor = "#3498db"; // Bright blue accent
-  const lightBg = "rgba(52, 152, 219, 0.08)"; // Very light blue background
+  const primaryColor = "#2c3e50";
+  const secondaryColor = "#3498db";
+  const lightBg = "rgba(52, 152, 219, 0.08)";
 
   return (
     <Paper 
@@ -28,7 +27,6 @@ const ActivityList = ({ activities }) => {
         Main Gate Activity
       </Typography>
       
-      {/* Vertical scrollable content with visible scrollbar */}
       <Box sx={{ 
         flexGrow: 1, 
         overflowY: "auto",
@@ -48,7 +46,7 @@ const ActivityList = ({ activities }) => {
       }}>
         {activities.map((item) => (
           <Box 
-            key={item} 
+            key={item.id} 
             sx={{
               width: "100%",
               padding: 2,
@@ -79,14 +77,14 @@ const ActivityList = ({ activities }) => {
                 justifyContent: "center",
                 mr: 2
               }}>
-                <Typography sx={{ color: primaryColor, fontWeight: "medium" }}>{item}</Typography>
+                <Typography sx={{ color: primaryColor, fontWeight: "medium" }}>{item.name}</Typography>
               </Box>
               <Typography variant="body1" color={primaryColor}>
-                Activity Point {item}
+                {item.type} - {item.status}
               </Typography>
             </Box>
             <Typography variant="body2" color="#2c3e50" x={{ mr: 3 }}>
-              3/12/2025
+              {new Date(item.entryTime).toLocaleString()}
             </Typography>
           </Box>
         ))}

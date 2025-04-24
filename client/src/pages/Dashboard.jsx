@@ -1,12 +1,12 @@
 import React from "react";
-import { Box, Grid, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Grid, useTheme } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import ReportIcon from "@mui/icons-material/Report";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SecurityIcon from "@mui/icons-material/Security";
 
 import StatCard from "../components/StatCard";
-import ActivityList from "../components/ActivityList";
+import ActivityListContainer from "../components/ActivityListContainer";
 import NoticeBoard from "../components/NoticeBoard";
 import PendingDues from "../components/PendingDues";
 
@@ -22,7 +22,6 @@ const Dashboard = () => {
   ];
 
   // Generate array of numbers for list items
-  const activityItems = [1, 2, 3, 4, 5, 6];
   const noticeItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const dueItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -49,7 +48,7 @@ const Dashboard = () => {
       <Grid container spacing={3}>
         {/* Main Gate Activity - Reduced width */}
         <Grid item xs={12} md={7}>
-          <ActivityList activities={activityItems} />
+          <ActivityListContainer /> {/* Replacing static activityItems */}
         </Grid>
 
         {/* Right Column - Modified for equal height sections */}
