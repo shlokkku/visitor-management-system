@@ -6,52 +6,35 @@ exports.protect = async (req, res, next) => {
   try {
     let token;
 
-    // Extract token from cookies or Authorization header
+    // Extract token
     if (req.cookies?.token) {
       token = req.cookies.token;
     } else if (req.headers.authorization?.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
 
-    // If no token is found, return unauthorized
     if (!token) {
       return res.status(401).json({ message: 'Not authorized, no token' });
     }
 
-    // Verify the token using JWT_SECRET
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Decoded Token:', decoded);
 
-    // Fetch user from the database based on token's `id` and `role` field
     let user;
-    if (decoded.role === 'Admin') {
-      const [admins] = await db.execute('SELECT * FROM Admin WHERE id = ?', [
-        decoded.id,
-      ]);
+    if (decoded.role === 'admin') {
+      const [admins] = await db.execute('SELECT * FROM Admin WHERE id = ?', [decoded.id]);
+      console.log('Decoded ID:', decoded.id);
+      console.log('Admin Query Result:', admins);
       user = admins[0];
-    } else if (decoded.role === 'Guard') {
-      const [guards] = await db.execute('SELECT * FROM Guards WHERE id = ?', [
-        decoded.id,
-      ]);
-      user = guards[0];
-    } else if (decoded.role === 'Owner' || decoded.role === 'Tenant' || decoded.role === 'Family Member') {
-      const [residents] = await db.execute(
-        'SELECT * FROM Residents WHERE id = ?',
-        [decoded.id]
-      );
-      user = residents[0];
     }
 
-    // If no user is found, return unauthorized
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    // Attach user and role to the request object
-    req.user = {
-      ...user,
-      role: decoded.role, // Use the role directly from the token
-    };
-
+    // Normalize the role to match expected case
+    req.user = { ...user, role: decoded.role.charAt(0).toUpperCase() + decoded.role.slice(1) };
     next();
   } catch (error) {
     console.error('Token Verification Error:', error.message);
@@ -62,6 +45,9 @@ exports.protect = async (req, res, next) => {
 // Middleware to authorize roles
 exports.authorize = (...roles) => {
   return (req, res, next) => {
+    console.log('User Role:', req.user.role);
+    console.log('Allowed Roles:', roles);
+
     if (!roles.includes(req.user.role)) {
       return res
         .status(403)
