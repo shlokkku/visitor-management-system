@@ -1,4 +1,3 @@
-//index.js 
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -8,8 +7,8 @@ const visitorLogRoutes = require('./routes/visitorLogs');
 const authRoutes = require('./routes/auth');
 const duesRoutes = require('./routes/dues');
 const noticeRoutes = require('./routes/notices');
-const testTokenRoute = require('./routes/testTokenroute');
 const guardRoutes = require('./routes/guards');
+const residentRoutes = require('./routes/residents');
 require('dotenv').config();
 
 // Check for critical environment variables
@@ -42,12 +41,13 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/dues', duesRoutes);
-app.use('/api/notices', noticeRoutes);
-app.use('/api/visitorlogs', visitorLogRoutes);
-app.use('/api', testTokenRoute);
-app.use('/api/guards', guardRoutes);
+app.use('/api/auth', authRoutes); // Authentication routes (Resident, Admin, Guard)
+app.use('/api/dues', duesRoutes); // Dues-related routes
+app.use('/api/notices', noticeRoutes); // Notices-related routes
+app.use('/api/visitorlogs', visitorLogRoutes); // Visitor log routes
+app.use('/api/guards', guardRoutes); // Guard-related routes
+app.use('/api/residents', residentRoutes); // Resident-related routes
+
 // Handle unhandled routes
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });

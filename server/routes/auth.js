@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const { protect } = require('../middleware/auth');
 
-// Resident Routes
+// Resident routes
 router.post('/resident/signup', authController.residentSignup);
 router.post('/resident/signin', authController.residentSignin);
 
-// Admin Routes
+// Admin routes
 router.post('/admin/signup', authController.adminSignup);
 router.post('/admin/signin', authController.adminSignin);
 
-// Guard Routes (if needed)
+// Guard routes
 router.post('/guard/signup', authController.guardSignup);
 router.post('/guard/signin', authController.guardSignin);
 

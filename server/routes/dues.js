@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const duesController = require('../controllers/duesController');
+const { protect, authorize } = require('../middleware/auth');
 
-router.get('/', duesController.getPendingDues);
-router.post('/', duesController.addDue);
+// Protect all dues routes
+router.use(protect);
+
+// Routes for dues
+router.get('/', authorize('Admin'), duesController.getAllDues); // Get all dues (Admin only)
+router.get('/:tenantId', authorize('Resident', 'Admin'), duesController.getResidentDues); // Get dues for a resident
+router.put('/dues/:id', duesController.updateDuesByResidentId);
+router.post('/', authorize('Admin'), duesController.addDue); // Add a new due (Admin only)
+router.put('/:id', authorize('Admin'), duesController.updateDuesByResidentId); // Update due (Admin only)
+router.put('/clear/:id', authorize('Admin', 'Resident'), duesController.clearDuesByResidentId); // Clear due (Admin or Resident)
 
 module.exports = router;
