@@ -1,20 +1,14 @@
 const express = require('express');
-const { protect, authorize } = require('../middleware/auth');
-const {
-  getVisitorLogs,
-  createVisitorLog,
-  updateVisitorStatus,
-} = require('../controllers/VisitorLogController.js');
-
 const router = express.Router();
+const visitorLogController = require('../controllers/visitorLogController');
+const { protect, authorize } = require('../middleware/auth');
 
-// Route to get all visitor logs (Admin view)
-router.get('/', protect, authorize('Admin'), getVisitorLogs);
+// Protect all visitor log routes
+router.use(protect);
 
-// Route to create a visitor log (Guard creates)
-router.post('/', protect, authorize('Guard'), createVisitorLog);
-
-// Route to approve/deny a visitor log (Owner, Tenant, Family Member, or Admin)
-router.post('/:id/approve', protect, authorize('Owner', 'Tenant', 'Family Member', 'Admin'), updateVisitorStatus);
+// Routes for visitor logs
+router.get('/', authorize('Admin'), visitorLogController.getVisitorLogs); // Get all visitor logs (Admin only)
+router.post('/', authorize('Guard'), visitorLogController.createVisitorLog); // Create visitor log (Guard only)
+router.put('/:id/status', authorize('Resident'), visitorLogController.updateVisitorStatus); // Update visitor status (Resident only)
 
 module.exports = router;

@@ -1,10 +1,11 @@
 const VisitorLog = require('../models/VisitorLog.mongo');
 const { getResidentByFlatId } = require('../models/Resident.mysql');
+const mongoose = require('mongoose');
 
 // Get all visitor logs (Admin view)
 exports.getVisitorLogs = async (req, res) => {
   try {
-    const logs = await VisitorLog.find().sort({ entryTime: -1 }).limit(100);
+    const logs = await VisitorLog.find().sort({ entry_time: -1 }).limit(100);
     res.json(logs);
   } catch (error) {
     console.error(error);
@@ -15,26 +16,23 @@ exports.getVisitorLogs = async (req, res) => {
 // Guard creates a visitor log
 exports.createVisitorLog = async (req, res) => {
   try {
-    const { visitorId, name, contactInfo, type, flatId, purpose } = req.body;
+    const { visitor_id, name, contact_info, type, flat_id, purpose } = req.body;
 
-    // Validate input
-    if (!visitorId || !name || !contactInfo || !type || !flatId) {
-      return res.status(400).json({ message: 'All fields are required, including flatId' });
+    if (!visitor_id || !name || !contact_info || !type || !flat_id) {
+      return res.status(400).json({ message: 'All fields are required, including flat ID.' });
     }
 
-    // Ensure the flat exists (MySQL query)
-    const resident = await getResidentByFlatId(flatId);
+    const resident = await getResidentByFlatId(flat_id);
     if (!resident) {
-      return res.status(404).json({ message: 'Flat not found' });
+      return res.status(404).json({ message: 'Flat not found.' });
     }
 
-    // Create new visitor log
     const log = new VisitorLog({
-      visitorId,
+      visitor_id,
       name,
-      contactInfo,
+      contact_info,
       type,
-      flatId, // Flat ID as string
+      flat_id,
       purpose,
       status: 'Pending',
     });
@@ -42,53 +40,55 @@ exports.createVisitorLog = async (req, res) => {
     await log.save();
 
     res.status(201).json(log);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error creating visitor log', error: err.message });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error creating visitor log.', error: error.message });
   }
 };
 
 // Resident approves or denies a visitor
 exports.updateVisitorStatus = async (req, res) => {
   try {
-    const { id } = req.params; // MongoDB ID of the VisitorLog
-    const { status, by } = req.body; // Status: 'Approved' or 'Denied'
+    const { id } = req.params;
+    const { status, updated_by } = req.body;
 
-    // Validate `status`
-    const validStatuses = ['Pending', 'Approved', 'Denied', 'CheckedIn', 'CheckedOut'];
-    const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(); // Normalize the status
-
-    if (!validStatuses.includes(normalizedStatus)) {
-      return res.status(400).json({ message: `Invalid status. Allowed values are: ${validStatuses.join(', ')}` });
+    const validStatuses = ['Approved', 'Denied', 'Pending', 'CheckedIn', 'CheckedOut'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Allowed values: ${validStatuses.join(', ')}` });
     }
 
-    // Check if the user is authenticated
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'User not authenticated' });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid ID format. Must be a valid MongoDB ObjectId.' });
     }
 
-    // Find the visitor log by ID
     const log = await VisitorLog.findById(id);
     if (!log) {
-      return res.status(404).json({ message: 'Visitor log not found' });
+      return res.status(404).json({ message: 'Visitor log not found.' });
     }
 
-    // Update the status and add an event
-    log.status = normalizedStatus; // Use normalized status
+    // Update status
+    log.status = status;
+
+    // Update entry_time or exit_time based on the status
+    if (status === 'CheckedIn') {
+      log.entry_time = new Date();
+    }
+    if (status === 'CheckedOut') {
+      log.exit_time = new Date();
+    }
+
+    // Add event to the events array
     log.events.push({
-      action: normalizedStatus.toLowerCase(),
+      action: status.toLowerCase(),
       timestamp: new Date(),
-      by,
+      by: updated_by,
     });
 
     await log.save();
 
-    // Emit real-time event for admin (if applicable)
-    req.io?.emit('visitorLogUpdated', log);
-
-    res.json(log);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error updating visitor status', error: err.message });
+    res.json({ message: 'Visitor status updated successfully.', log });
+  } catch (error) {
+    console.error('Error updating visitor status:', error);
+    res.status(500).json({ message: 'Error updating visitor status.', error: error.message });
   }
 };

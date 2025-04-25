@@ -1,16 +1,16 @@
 const express = require('express');
-const { guardSignup, guardSignin } = require('../controllers/authController'); // Import the Guard controller functions
-
 const router = express.Router();
+const { protect, authorize } = require('../middleware/auth');
+const guardController = require('../controllers/guardsController');
 
-// Route for Guard Sign-up
-// Endpoint: POST /api/guards/signup
-// Description: This route allows a new guard to register.
-router.post('/signup', guardSignup);
+// Protect all guard routes
+router.use(protect);
+router.use(authorize('Admin')); // Only admins can access guard routes
 
-// Route for Guard Sign-in
-// Endpoint: POST /api/guards/signin
-// Description: This route allows a guard to log in.
-router.post('/signin', guardSignin);
+// Routes for guards
+router.get('/', guardController.getAllGuards); // Get all guards (Admin only)
+router.post('/', guardController.addGuard); // Add a new guard (Admin only)
+router.put('/:id', guardController.updateGuard); // Update guard details (Admin only)
+router.delete('/:id', guardController.deleteGuard); // Delete guard (Admin only)
 
 module.exports = router;
