@@ -19,7 +19,8 @@ import {
   LegalDocuments,
   TenantManagement,
   ParkingPage,
-  CommunicationPage
+  CommunicationPage,
+  Complaints
 } from '../pages';
 
 // Inline component definitions to avoid import errors
@@ -141,6 +142,7 @@ function App() {
             <Route path="tenant-management" element={<TenantManagement />} />
             <Route path="parking" element={<ParkingPage />} />
             <Route path="communications" element={<CommunicationPage />} />
+            <Route path="complaints" element={<Complaints />} />
           </Route>
         </Route>
 

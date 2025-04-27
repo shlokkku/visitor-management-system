@@ -20,8 +20,17 @@ import {
   CircularProgress,
   Menu,
   MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Divider,
+  Chip,
   useTheme
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -29,6 +38,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArticleIcon from '@mui/icons-material/Article';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FolderIcon from '@mui/icons-material/Folder';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 const fileTypeIcons = {
   pdf: <ArticleIcon sx={{ color: '#e91e63' }} />,
@@ -36,6 +47,17 @@ const fileTypeIcons = {
   xls: <ArticleIcon sx={{ color: '#4caf50' }} />,
   img: <ArticleIcon sx={{ color: '#9c27b0' }} />,
 };
+
+// Document categories
+const categories = [
+  { id: 'rental', name: 'Rental Agreements', icon: <FolderIcon sx={{ color: '#1976d2' }} /> },
+  { id: 'works', name: 'Help/Works Documents', icon: <FolderIcon sx={{ color: '#388e3c' }} /> },
+  { id: 'resident', name: 'Resident Identity Proofs', icon: <FolderIcon sx={{ color: '#d32f2f' }} /> },
+  { id: 'guards', name: 'Security Staff Identity Proofs', icon: <FolderIcon sx={{ color: '#7b1fa2' }} /> },
+  { id: 'maids', name: 'Household Staff Documents', icon: <FolderIcon sx={{ color: '#f57c00' }} /> },
+  { id: 'society', name: 'Society Rules & Regulations', icon: <FolderIcon sx={{ color: '#0097a7' }} /> },
+  { id: 'meeting', name: 'Meeting Minutes', icon: <FolderIcon sx={{ color: '#c2185b' }} /> },
+];
 
 const LegalDocuments = () => {
   const theme = useTheme();
@@ -47,81 +69,206 @@ const LegalDocuments = () => {
   const [fileToUpload, setFileToUpload] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [expandedCategory, setExpandedCategory] = useState('rental');
+  const [selectedCategory, setSelectedCategory] = useState('rental');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryStats, setCategoryStats] = useState({});
 
-  // Mock data to match your screenshot
+  // Mock data to match real-world scenario
   useEffect(() => {
-    setFiles([
+    const mockFiles = [
       {
         id: 1,
-        name: 'Rent Agreement(B-301)',
+        name: 'Rent Agreement (B-301)',
         size: '200 KB',
         dateUploaded: 'Jan 4, 2022',
         lastUpdated: 'Jan 4, 2022',
         uploadedBy: 'Olivia Rhye',
-        type: 'pdf'
+        type: 'pdf',
+        category: 'rental',
+        unit: 'B-301'
       },
       {
         id: 2,
-        name: 'Society Rules',
-        size: '720 KB',
-        dateUploaded: 'Jan 4, 2022',
-        lastUpdated: 'Jan 4, 2022',
-        uploadedBy: 'Phoenix Baker',
-        type: 'img'
-      },
-      {
-        id: 3,
-        name: 'Meeting Discussions',
-        size: '16 MB',
-        dateUploaded: 'Jan 2, 2022',
-        lastUpdated: 'Jan 2, 2022',
-        uploadedBy: 'Lana Steiner',
-        type: 'xls'
-      },
-      {
-        id: 4,
-        name: 'Rent Agreement(A-205)',
-        size: '4.2 MB',
+        name: 'Rent Agreement (A-205)',
+        size: '180 KB',
         dateUploaded: 'Jan 6, 2022',
         lastUpdated: 'Jan 6, 2022',
         uploadedBy: 'Demi Wilkinson',
-        type: 'xls'
+        type: 'pdf',
+        category: 'rental',
+        unit: 'A-205'
+      },
+      {
+        id: 3,
+        name: 'Rent Agreement (C-102)',
+        size: '210 KB',
+        dateUploaded: 'Feb 15, 2022',
+        lastUpdated: 'Feb 15, 2022',
+        uploadedBy: 'Phoenix Baker',
+        type: 'pdf',
+        category: 'rental',
+        unit: 'C-102'
+      },
+      {
+        id: 4,
+        name: 'Society Rules and Bylaws',
+        size: '720 KB',
+        dateUploaded: 'Dec 12, 2021',
+        lastUpdated: 'Jan 4, 2022',
+        uploadedBy: 'Admin',
+        type: 'pdf',
+        category: 'society'
       },
       {
         id: 5,
-        name: 'Aadhar copy maids',
-        size: '400 KB',
-        dateUploaded: 'Jan 8, 2022',
-        lastUpdated: 'Jan 8, 2022',
-        uploadedBy: 'Candice Wu',
-        type: 'pdf'
+        name: 'Parking Regulations',
+        size: '320 KB',
+        dateUploaded: 'Dec 15, 2021',
+        lastUpdated: 'Dec 15, 2021',
+        uploadedBy: 'Admin',
+        type: 'pdf',
+        category: 'society'
       },
       {
         id: 6,
-        name: 'Aadhar copy Security guards',
+        name: 'Annual General Meeting Minutes',
+        size: '16 MB',
+        dateUploaded: 'Mar 2, 2022',
+        lastUpdated: 'Mar 2, 2022',
+        uploadedBy: 'Lana Steiner',
+        type: 'xls',
+        category: 'meeting'
+      },
+      {
+        id: 7,
+        name: 'Emergency Committee Meeting',
+        size: '4.2 MB',
+        dateUploaded: 'Apr 6, 2022',
+        lastUpdated: 'Apr 6, 2022',
+        uploadedBy: 'Demi Wilkinson',
+        type: 'doc',
+        category: 'meeting'
+      },
+      {
+        id: 8,
+        name: 'Aadhar Cards - Maids (Compiled)',
+        size: '4.5 MB',
+        dateUploaded: 'Jan 8, 2022',
+        lastUpdated: 'Jan 8, 2022',
+        uploadedBy: 'Candice Wu',
+        type: 'pdf',
+        category: 'maids'
+      },
+      {
+        id: 9,
+        name: 'Police Verification - Maids',
+        size: '2.8 MB',
+        dateUploaded: 'Jan 10, 2022',
+        lastUpdated: 'Feb 2, 2022',
+        uploadedBy: 'Candice Wu',
+        type: 'pdf',
+        category: 'maids'
+      },
+      {
+        id: 10,
+        name: 'Security Guards - ID Cards',
         size: '12 MB',
         dateUploaded: 'Jan 6, 2022',
         lastUpdated: 'Jan 6, 2022',
         uploadedBy: 'Natali Craig',
-        type: 'img'
+        type: 'pdf',
+        category: 'guards'
       },
       {
-        id: 7,
-        name: 'Security guards holiday',
+        id: 11,
+        name: 'Security Staff Contact Details',
         size: '800 KB',
         dateUploaded: 'Jan 4, 2022',
-        lastUpdated: 'Jan 4, 2022',
+        lastUpdated: 'Apr 10, 2022',
         uploadedBy: 'Drew Cano',
-        type: 'img'
+        type: 'xls',
+        category: 'guards'
       },
-    ]);
+      {
+        id: 12,
+        name: 'Plumbing Maintenance Contract',
+        size: '1.2 MB',
+        dateUploaded: 'Feb 8, 2022',
+        lastUpdated: 'Feb 8, 2022',
+        uploadedBy: 'Admin',
+        type: 'pdf',
+        category: 'works'
+      },
+      {
+        id: 13,
+        name: 'Electrical Maintenance Schedule',
+        size: '950 KB',
+        dateUploaded: 'Feb 10, 2022',
+        lastUpdated: 'Mar 15, 2022',
+        uploadedBy: 'Admin',
+        type: 'xls',
+        category: 'works'
+      },
+      {
+        id: 14,
+        name: 'Resident ID Cards - Tower A',
+        size: '8.5 MB',
+        dateUploaded: 'Dec 20, 2021',
+        lastUpdated: 'Jan 15, 2022',
+        uploadedBy: 'Admin',
+        type: 'pdf',
+        category: 'resident'
+      },
+      {
+        id: 15,
+        name: 'Resident ID Cards - Tower B',
+        size: '9.2 MB',
+        dateUploaded: 'Dec 22, 2021',
+        lastUpdated: 'Jan 16, 2022',
+        uploadedBy: 'Admin',
+        type: 'pdf',
+        category: 'resident'
+      },
+    ];
+
+    setFiles(mockFiles);
+
+    // Calculate category statistics
+    const stats = {};
+    categories.forEach(category => {
+      const categoryFiles = mockFiles.filter(file => file.category === category.id);
+      stats[category.id] = {
+        count: categoryFiles.length,
+        totalSize: categoryFiles.reduce((sum, file) => {
+          const size = parseFloat(file.size.split(' ')[0]);
+          const unit = file.size.split(' ')[1];
+          const sizeInKB = unit === 'MB' ? size * 1024 : size;
+          return sum + sizeInKB;
+        }, 0)
+      };
+    });
+    setCategoryStats(stats);
   }, []);
 
-  const handleSelectAll = (event) => {
+  const formatSize = (sizeInKB) => {
+    if (sizeInKB >= 1024) {
+      return `${(sizeInKB / 1024).toFixed(1)} MB`;
+    }
+    return `${Math.round(sizeInKB)} KB`;
+  };
+
+  const handleAccordionChange = (category) => (event, isExpanded) => {
+    setExpandedCategory(isExpanded ? category : false);
+  };
+
+  const handleSelectAll = (category) => (event) => {
+    const categoryFiles = files.filter(file => file.category === category);
+    
     if (event.target.checked) {
-      setSelectedFiles(files.map(file => file.id));
+      setSelectedFiles([...new Set([...selectedFiles, ...categoryFiles.map(file => file.id)])]);
     } else {
-      setSelectedFiles([]);
+      setSelectedFiles(selectedFiles.filter(id => !categoryFiles.map(file => file.id).includes(id)));
     }
   };
 
@@ -170,7 +317,7 @@ const LegalDocuments = () => {
         
         // Add file to the list
         const newFile = {
-          id: files.length + 1,
+          id: Math.max(...files.map(f => f.id)) + 1,
           name: fileToUpload.name,
           size: `${Math.round(fileToUpload.size / 1024)} KB`,
           dateUploaded: new Date().toLocaleDateString('en-US', {
@@ -183,26 +330,41 @@ const LegalDocuments = () => {
             day: 'numeric',
             year: 'numeric'
           }),
-          uploadedBy: 'Current User',
+          uploadedBy: 'Current Admin',
           type: fileToUpload.name.split('.').pop() === 'pdf' ? 'pdf' : 
                  fileToUpload.name.split('.').pop() === 'doc' ? 'doc' :
-                 fileToUpload.name.split('.').pop() === 'xls' ? 'xls' : 'img'
+                 fileToUpload.name.split('.').pop() === 'xls' ? 'xls' : 'img',
+          category: selectedCategory
         };
         
-        setFiles([newFile, ...files]);
+        const updatedFiles = [newFile, ...files];
+        setFiles(updatedFiles);
+        
+        // Update category stats
+        const newStats = {...categoryStats};
+        newStats[selectedCategory].count += 1;
+        newStats[selectedCategory].totalSize += parseInt(newFile.size);
+        setCategoryStats(newStats);
+        
         setUploading(false);
         handleCloseUploadDialog();
+
+        // Auto-expand the category where the file was added
+        setExpandedCategory(selectedCategory);
       }
     }, 300);
   };
 
-  const handleDownloadAll = () => {
-    // In a real app, this would trigger downloads of all selected files
-    console.log("Downloading files:", selectedFiles.map(id => files.find(file => file.id === id).name));
+  const handleDownloadSelected = (category) => {
+    // In a real app, this would trigger downloads of selected files
+    const categoryFiles = files.filter(file => file.category === category);
+    const selectedCategoryFiles = categoryFiles.filter(file => selectedFiles.includes(file.id));
+    console.log("Downloading files:", selectedCategoryFiles.map(file => file.name));
   };
 
   const handleContextMenu = (event, file) => {
     event.preventDefault();
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setSelectedFile(file);
   };
@@ -214,33 +376,76 @@ const LegalDocuments = () => {
 
   const handleDeleteFile = () => {
     if (selectedFile) {
-      setFiles(files.filter(file => file.id !== selectedFile.id));
+      // Remove file from the list
+      const updatedFiles = files.filter(file => file.id !== selectedFile.id);
+      setFiles(updatedFiles);
+      
+      // Update category stats
+      const deletedFileSize = parseFloat(selectedFile.size.split(' ')[0]);
+      const deletedFileUnit = selectedFile.size.split(' ')[1];
+      const sizeInKB = deletedFileUnit === 'MB' ? deletedFileSize * 1024 : deletedFileSize;
+      
+      const newStats = {...categoryStats};
+      newStats[selectedFile.category].count -= 1;
+      newStats[selectedFile.category].totalSize -= sizeInKB;
+      setCategoryStats(newStats);
+      
+      // Remove from selected files if present
       setSelectedFiles(selectedFiles.filter(id => id !== selectedFile.id));
     }
     handleCloseMenu();
   };
 
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const filteredFiles = searchTerm 
+    ? files.filter(file => 
+        file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        file.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (file.unit && file.unit.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+    : files;
+
+  const getCategoryFiles = (categoryId) => {
+    return filteredFiles.filter(file => file.category === categoryId);
+  };
+
   const isSelected = (id) => selectedFiles.indexOf(id) !== -1;
+
+  const areAllCategoryFilesSelected = (category) => {
+    const categoryFiles = files.filter(file => file.category === category);
+    return categoryFiles.length > 0 && categoryFiles.every(file => selectedFiles.includes(file.id));
+  };
+
+  const areSomeCategoryFilesSelected = (category) => {
+    const categoryFiles = files.filter(file => file.category === category);
+    return categoryFiles.some(file => selectedFiles.includes(file.id)) && 
+           !categoryFiles.every(file => selectedFiles.includes(file.id));
+  };
 
   return (
     <Box sx={{ 
       padding: 3, 
-      bgcolor: "#f8f9fa", 
+      bgcolor: "#f5f7fa", 
       minHeight: "100vh" 
     }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" component="h1" sx={{ color: "#2c3e50", fontWeight: "bold" }}>
-          Legal Documents
+          Legal Documents Repository
         </Typography>
         
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', borderRadius: 1, px: 1, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', borderRadius: 1, px: 1, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', width: 250 }}>
             <SearchIcon sx={{ color: '#2c3e50' }} />
             <TextField 
               variant="standard" 
-              placeholder="Search files..." 
+              placeholder="Search files, uploader, unit..." 
               InputProps={{ disableUnderline: true }}
-              sx={{ ml: 1, color: 'black' }}
+              sx={{ ml: 1, color: 'black', width: '100%' }}
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
           </Box>
           
@@ -253,149 +458,245 @@ const LegalDocuments = () => {
             startIcon={<FileUploadIcon />}
             onClick={handleOpenUploadDialog}
           >
-            Upload
+            Upload Document
           </Button>
         </Box>
       </Box>
 
-      <Paper sx={{ 
-        width: '100%', 
-        overflow: 'hidden', 
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
-        borderRadius: 2,
-        bgcolor: '#e3f2fd' // Changed the entire Paper background to light blue
-      }}>
-        <Box sx={{ 
-          p: 2, 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          borderBottom: '1px solid #cce5ff'
-        }}>
-          <Typography variant="subtitle1" component="div" fontWeight="medium" sx={{ color: "#2c3e50" }}>
-            Files uploaded
-          </Typography>
-          <Button
-            size="small"
-            startIcon={<DownloadIcon />}
-            disabled={selectedFiles.length === 0}
-            onClick={handleDownloadAll}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ mb: 1, color: '#555' }}>
+          Categories
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          {categories.map((category) => (
+            <Paper 
+              key={category.id}
+              elevation={1}
+              sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center', 
+                p: 2, 
+                width: 150,
+                borderRadius: 2,
+                cursor: 'pointer',
+                bgcolor: expandedCategory === category.id ? '#e3f2fd' : 'white',
+                '&:hover': { bgcolor: '#f0f7ff' }
+              }}
+              onClick={() => setExpandedCategory(category.id)}
+            >
+              {category.icon}
+              <Typography variant="body2" sx={{ mt: 1, textAlign: 'center', fontWeight: 'medium' }}>
+                {category.name}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {categoryStats[category.id]?.count || 0} files
+              </Typography>
+            </Paper>
+          ))}
+        </Box>
+      </Box>
+
+      {categories.map((category) => {
+        const categoryFiles = getCategoryFiles(category.id);
+        const hasFiles = categoryFiles.length > 0;
+        
+        return (
+          <Accordion 
+            key={category.id}
+            expanded={expandedCategory === category.id}
+            onChange={handleAccordionChange(category.id)}
             sx={{ 
-              color: "#2c3e50",
-              "&.Mui-disabled": {
-                color: "rgba(44, 62, 80, 0.5)",
-              }
+              mb: 2,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              borderRadius: '8px !important',
+              '&:before': {
+                display: 'none',
+              },
+              overflow: 'hidden'
             }}
           >
-            Download all
-          </Button>
-        </Box>
-        
-        <TableContainer>
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead sx={{ bgcolor: '#bbdefb' }}>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    indeterminate={selectedFiles.length > 0 && selectedFiles.length < files.length}
-                    checked={files.length > 0 && selectedFiles.length === files.length}
-                    onChange={handleSelectAll}
-                    sx={{
-                      color: "#2c3e50",
-                      '&.Mui-checked': {
-                        color: "#2c3e50",
-                      },
-                      '&.MuiCheckbox-indeterminate': {
-                        color: "#2c3e50",
-                      }
-                    }}
-                  />
-                </TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>File name</TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>File size</TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Date uploaded</TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Last updated</TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Uploaded by</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {files.map((file) => {
-                const isItemSelected = isSelected(file.id);
-                
-                return (
-                  <TableRow
-                    key={file.id}
-                    hover
-                    onClick={() => handleSelectFile(file.id)}
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    selected={isItemSelected}
-                    onContextMenu={(e) => handleContextMenu(e, file)}
-                    sx={{ 
-                      '&.Mui-selected': {
-                        backgroundColor: 'rgba(44, 62, 80, 0.08)',
-                      },
-                      '&.Mui-selected:hover': {
-                        backgroundColor: 'rgba(44, 62, 80, 0.12)',
-                      },
-                      '&:hover': {
-                        backgroundColor: 'rgba(44, 62, 80, 0.04)',
-                      }
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{ 
+                bgcolor: '#e8f4fc',
+                '&.Mui-expanded': {
+                  minHeight: 64,
+                  borderBottom: '1px solid #cce5ff'
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                {category.icon}
+                <Typography sx={{ ml: 2, fontWeight: 'medium', color: '#2c3e50', flexGrow: 1 }}>
+                  {category.name}
+                </Typography>
+                <Chip 
+                  label={`${categoryFiles.length} files`} 
+                  size="small"
+                  sx={{ mr: 2, bgcolor: '#bbdefb', color: '#1565c0' }}
+                />
+                {categoryStats[category.id] && (
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
+                    {formatSize(categoryStats[category.id].totalSize)}
+                  </Typography>
+                )}
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0 }}>
+              {hasFiles ? (
+                <TableContainer>
+                  <Table sx={{ minWidth: 650 }}>
+                    <TableHead sx={{ bgcolor: '#f5f9ff' }}>
+                      <TableRow>
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            indeterminate={areSomeCategoryFilesSelected(category.id)}
+                            checked={areAllCategoryFilesSelected(category.id)}
+                            onChange={handleSelectAll(category.id)}
+                            sx={{
+                              color: "#2c3e50",
+                              '&.Mui-checked': {
+                                color: "#2c3e50",
+                              },
+                              '&.MuiCheckbox-indeterminate': {
+                                color: "#2c3e50",
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>File name</TableCell>
+                        {category.id === 'rental' && (
+                          <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Unit</TableCell>
+                        )}
+                        <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>File size</TableCell>
+                        <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Date uploaded</TableCell>
+                        <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Last updated</TableCell>
+                        <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Uploaded by</TableCell>
+                        <TableCell align="right">
+                          <Button
+                            size="small"
+                            startIcon={<DownloadIcon />}
+                            disabled={!categoryFiles.some(file => selectedFiles.includes(file.id))}
+                            onClick={() => handleDownloadSelected(category.id)}
+                            sx={{ 
+                              color: "#2c3e50",
+                              "&.Mui-disabled": {
+                                color: "rgba(44, 62, 80, 0.5)",
+                              }
+                            }}
+                          >
+                            Download
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {categoryFiles.map((file) => {
+                        const isItemSelected = isSelected(file.id);
+                        
+                        return (
+                          <TableRow
+                            key={file.id}
+                            hover
+                            onClick={() => handleSelectFile(file.id)}
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            selected={isItemSelected}
+                            sx={{ 
+                              '&.Mui-selected': {
+                                backgroundColor: 'rgba(44, 62, 80, 0.08)',
+                              },
+                              '&.Mui-selected:hover': {
+                                backgroundColor: 'rgba(44, 62, 80, 0.12)',
+                              },
+                              '&:hover': {
+                                backgroundColor: 'rgba(44, 62, 80, 0.04)',
+                              }
+                            }}
+                          >
+                            <TableCell padding="checkbox">
+                              <Checkbox
+                                checked={isItemSelected}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={() => handleSelectFile(file.id)}
+                                sx={{
+                                  color: "#2c3e50",
+                                  '&.Mui-checked': {
+                                    color: "#2c3e50",
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', color: '#2c3e50' }}>
+                                {fileTypeIcons[file.type] || <InsertDriveFileIcon sx={{ color: '#9e9e9e' }} />}
+                                <Typography sx={{ ml: 2, color: '#2c3e50' }}>{file.name}</Typography>
+                              </Box>
+                            </TableCell>
+                            {category.id === 'rental' && (
+                              <TableCell sx={{ color: '#2c3e50' }}>{file.unit || '-'}</TableCell>
+                            )}
+                            <TableCell sx={{ color: '#2c3e50' }}>{file.size}</TableCell>
+                            <TableCell sx={{ color: '#2c3e50' }}>{file.dateUploaded}</TableCell>
+                            <TableCell sx={{ color: '#2c3e50' }}>{file.lastUpdated}</TableCell>
+                            <TableCell sx={{ color: '#2c3e50' }}>{file.uploadedBy}</TableCell>
+                            <TableCell align="right">
+                              <IconButton 
+                                size="small" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleContextMenu(e, file);
+                                }}
+                                sx={{ color: '#2c3e50' }}
+                              >
+                                <MoreVertIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
+                  <InsertDriveFileIcon sx={{ color: '#ccc', fontSize: 48, mb: 2 }} />
+                  <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
+                    No documents found in this category
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={() => {
+                      setSelectedCategory(category.id);
+                      handleOpenUploadDialog();
                     }}
                   >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={isItemSelected}
-                        sx={{
-                          color: "#2c3e50",
-                          '&.Mui-checked': {
-                            color: "#2c3e50",
-                          }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', color: '#2c3e50' }}>
-                        {fileTypeIcons[file.type] || <InsertDriveFileIcon sx={{ color: '#9e9e9e' }} />}
-                        <Typography sx={{ ml: 2, color: '#2c3e50' }}>{file.name}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#2c3e50' }}>{file.size}</TableCell>
-                    <TableCell sx={{ color: '#2c3e50' }}>{file.dateUploaded}</TableCell>
-                    <TableCell sx={{ color: '#2c3e50' }}>{file.lastUpdated}</TableCell>
-                    <TableCell sx={{ color: '#2c3e50' }}>{file.uploadedBy}</TableCell>
-                    <TableCell align="right">
-                      <IconButton size="small" onClick={(e) => {
-                        e.stopPropagation();
-                        handleContextMenu(e, file);
-                      }}
-                      sx={{ color: '#2c3e50' }}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+                    Add documents
+                  </Button>
+                </Box>
+              )}
+            </AccordionDetails>
+          </Accordion>
+        );
+      })}
 
       {/* File context menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
+        sx={{ '& .MuiPaper-root': { boxShadow: '0 4px 20px rgba(0,0,0,0.15)' } }}
       >
         <MenuItem onClick={handleCloseMenu}>
           <DownloadIcon fontSize="small" sx={{ mr: 1, color: "#2c3e50" }} />
           Download
         </MenuItem>
+        <Divider />
         <MenuItem onClick={handleDeleteFile}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1, color: "#2c3e50" }} />
-          Delete
+          <DeleteIcon fontSize="small" sx={{ mr: 1, color: "#d32f2f" }} />
+          <Typography color="#d32f2f">Delete</Typography>
         </MenuItem>
       </Menu>
 
@@ -403,7 +704,27 @@ const LegalDocuments = () => {
       <Dialog open={openUploadDialog} onClose={handleCloseUploadDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ bgcolor: "#f8f9fa", color: "#2c3e50" }}>Upload Document</DialogTitle>
         <DialogContent>
-          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', p: 3 }}>
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <InputLabel id="category-select-label">Document Category</InputLabel>
+              <Select
+                labelId="category-select-label"
+                id="category-select"
+                value={selectedCategory}
+                label="Document Category"
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {category.icon}
+                      <Typography sx={{ ml: 1 }}>{category.name}</Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
             {!fileToUpload ? (
               <Box 
                 sx={{ 
@@ -430,47 +751,60 @@ const LegalDocuments = () => {
                 </Typography>
               </Box>
             ) : (
-              <Box sx={{ width: '100%', textAlign: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <InsertDriveFileIcon sx={{ mr: 1, color: "#2c3e50" }} />
-                  <Typography sx={{ color: '#2c3e50' }}>{fileToUpload.name}</Typography>
-                </Box>
-                
-                {uploading && (
-                  <Box sx={{ width: '100%', mt: 2 }}>
-                    <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                      <CircularProgress 
-                        variant="determinate" 
-                        value={uploadProgress} 
-                        sx={{
-                          color: "#2c3e50"
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          top: 0,
-                          left: 0,
-                          bottom: 0,
-                          right: 0,
-                          position: 'absolute',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Typography variant="caption" component="div" color="text.secondary">
-                          {`${Math.round(uploadProgress)}%`}
-                        </Typography>
+              <Box sx={{ width: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: '#f8faff', border: '1px solid #e0e7ff', borderRadius: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    {fileTypeIcons[fileToUpload.name.split('.').pop() === 'pdf' ? 'pdf' : 
+                     fileToUpload.name.split('.').pop() === 'doc' ? 'doc' :
+                     fileToUpload.name.split('.').pop() === 'xls' ? 'xls' : 'img'] || 
+                    <InsertDriveFileIcon sx={{ color: "#2c3e50" }} />}
+                    <Typography sx={{ ml: 1, color: '#2c3e50', fontWeight: 'medium' }}>{fileToUpload.name}
+</Typography>
+<Typography sx={{ ml: 1, color: '#2c3e50', fontWeight: 'medium', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {fileToUpload.name}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Size: {Math.round(fileToUpload.size / 1024)} KB
+                  </Typography>
+                  
+                  {uploading && (
+                    <Box sx={{ width: '100%', mt: 2 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Uploading...</span>
+                        <span>{uploadProgress}%</span>
+                      </Typography>
+                      <Box sx={{ width: '100%', backgroundColor: '#e0e0e0', borderRadius: 5, height: 8, mt: 1 }}>
+                        <Box
+                          sx={{
+                            backgroundColor: '#2c3e50',
+                            height: '100%',
+                            borderRadius: 5,
+                            width: `${uploadProgress}%`,
+                            transition: 'width 0.3s ease'
+                          }}
+                        />
                       </Box>
                     </Box>
-                  </Box>
+                  )}
+                </Paper>
+
+                {selectedCategory === 'rental' && !uploading && (
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Unit Number"
+                    placeholder="e.g. A-101, B-203"
+                    size="small"
+                    sx={{ mt: 2 }}
+                  />
                 )}
               </Box>
             )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ bgcolor: "#f8f9fa" }}>
-          <Button onClick={handleCloseUploadDialog}>Cancel</Button>
+        <DialogActions sx={{ bgcolor: "#f8f9fa", p: 2 }}>
+          <Button onClick={handleCloseUploadDialog} sx={{ color: '#2c3e50' }}>Cancel</Button>
           <Button 
             onClick={handleUpload} 
             variant="contained" 
@@ -483,7 +817,7 @@ const LegalDocuments = () => {
               }
             }}
           >
-            Upload
+            {uploading ? 'Uploading...' : 'Upload'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -491,4 +825,4 @@ const LegalDocuments = () => {
   );
 };
 
-export default LegalDocuments;
+export default LegalDocuments;                     
