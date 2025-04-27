@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; 
+import axios from 'axios';
 import { 
   Box, 
   Typography, 
@@ -16,73 +17,75 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  useTheme
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Pagination
 } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
+
+const API_URL = '/api/residents'; // Backend API base URL
 
 const TenantManagement = () => {
-  const theme = useTheme();
   const [residents, setResidents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 10 });
+  const [totalPages, setTotalPages] = useState(1);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [newResident, setNewResident] = useState({
-    flat: '',
-    name: '',
-    type: 'Rentee',
-    dues: '',
-    dueType: 'Water Bill'
+    full_name: '',
+    wing: '',
+    flat_number: '',
+    role: 'Owner',
+    dues_amount: '',
+    dues_type: 'Water Bill',
+    contact_info: ''
   });
+  const [searchQuery, setSearchQuery] = useState(''); // For holding the search query
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  useEffect(() => {
-    setResidents([
-      { 
-        id: 1, 
-        flat: 'A Wing 101', 
-        name: 'Tom Cruise', 
-        type: 'Rentee', 
-        dues: '₹20,000',
-        dueType: 'Water Bill'
-      },
-      { 
-        id: 2, 
-        flat: 'A Wing 102', 
-        name: 'Matt Damon', 
-        type: 'Owner', 
-        dues: '₹5,000',
-        dueType: 'Maintenance fees'
-      },
-      { 
-        id: 3, 
-        flat: 'A Wing 104', 
-        name: 'Robert Downey', 
-        type: 'Rentee', 
-        dues: 'NA',
-        dueType: ''
-      },
-      { 
-        id: 4, 
-        flat: 'A Wing 201', 
-        name: 'Christian Bale', 
-        type: 'Rentee', 
-        dues: 'NA',
-        dueType: ''
-      },
-      { 
-        id: 5, 
-        flat: 'A Wing 202', 
-        name: 'Henry Cavil', 
-        type: 'Owner', 
-        dues: '₹30,000',
-        dueType: 'Maintenance fees'
+  // Fetch residents with search query and pagination
+  const fetchResidents = async (page = 1, limit = 10, query = '') => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token'); // Fetch token from localStorage
+  
+      if (!token) {
+        setError('No token found, please log in again.');
+        setLoading(false);
+        return;
       }
-    ]);
-  }, []);
+  
+      const response = await axios.get(`${API_URL}?page=${page}&limit=${limit}&search=${query}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the request header
+        }
+      });
+  
+      const fetchedResidents = response.data?.data || [];
+      setResidents(fetchedResidents);
+      setPagination({ page, limit });
+      setTotalPages(Math.ceil(response.data.pagination.totalResidents / limit));
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch residents');
+      setResidents([]);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Run the fetchResidents whenever searchQuery changes
+  useEffect(() => {
+    fetchResidents(pagination.page, pagination.limit, searchQuery);
+  }, [pagination.page, pagination.limit, searchQuery]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   const handleOpenAddDialog = () => {
     setOpenAddDialog(true);
@@ -100,56 +103,64 @@ const TenantManagement = () => {
     });
   };
 
-  const handleAddResident = () => {
-    const newId = residents.length > 0 ? Math.max(...residents.map(r => r.id)) + 1 : 1;
-    
-    setResidents([
-      ...residents,
-      {
-        id: newId,
-        ...newResident
+  const handleAddResident = async () => {
+    try {
+      const payload = {
+        full_name: newResident.full_name,
+        wing: newResident.wing,
+        flat_number: newResident.flat_number,
+        role: newResident.role,
+        contact_info: newResident.contact_info,
+        dues_amount: newResident.dues_amount,
+        dues_type: newResident.dues_type
+      };
+      
+      const token = localStorage.getItem('token'); // Fetch token from localStorage
+      if (!token) {
+        setSnackbar({ open: true, message: 'No token found, please log in again.', severity: 'error' });
+        return;
       }
-    ]);
-    
-    // Reset form and close dialog
-    setNewResident({
-      flat: '',
-      name: '',
-      type: 'Rentee',
-      dues: '',
-      dueType: 'Water Bill'
-    });
-    setOpenAddDialog(false);
+
+      const response = await axios.post(API_URL, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include token in request header
+        }
+      });
+
+      fetchResidents(pagination.page, pagination.limit);
+      setSnackbar({ open: true, message: 'Resident added successfully', severity: 'success' });
+      setNewResident({ full_name: '', wing: '', flat_number: '', role: 'Owner', dues_amount: '', dues_type: 'Water Bill', contact_info: '' });
+      setOpenAddDialog(false);
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to add resident', severity: 'error' });
+    }
+  };
+
+  const handlePageChange = (event, value) => {
+    fetchResidents(value, pagination.limit, searchQuery);
   };
 
   return (
-    <Box sx={{ 
-      padding: 3, 
-      bgcolor: "#f8f9fa", 
-      minHeight: "100vh" 
-    }}>
+    <Box sx={{ padding: 3, bgcolor: "#f8f9fa", minHeight: "100vh" }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" component="h1" sx={{ color: "black", fontWeight: "bold" }}>
           Resident Info
         </Typography>
-        
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'white', borderRadius: 1, px: 1, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <SearchIcon sx={{ color: '#2c3e50' }} />
             <TextField 
               variant="standard" 
               placeholder="Search residents..." 
+              value={searchQuery}
+              onChange={handleSearchChange}
               InputProps={{ disableUnderline: true }}
               sx={{ ml: 1 }}
             />
           </Box>
-          
           <Button 
             variant="contained" 
-            sx={{ 
-              bgcolor: "#2c3e50", 
-              "&:hover": { bgcolor: "#2c3e50" } 
-            }} 
+            sx={{ bgcolor: "#2c3e50", "&:hover": { bgcolor: "#2c3e50" } }} 
             startIcon={<AddIcon />}
             onClick={handleOpenAddDialog}
           >
@@ -158,195 +169,75 @@ const TenantManagement = () => {
         </Box>
       </Box>
 
-      <Paper sx={{ 
-        width: '100%', 
-        overflow: 'hidden', 
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
-        borderRadius: 2 
-      }}>
-        {/* Changed the black box to light blue */}
-        <Box sx={{ 
-          p: 2, 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          borderBottom: '1px solid #eee',
-          bgcolor: '#e3f2fd' // Light blue color
-        }}>
-          <Typography variant="subtitle1" component="div" fontWeight="medium" sx={{ color: "#2c3e50" }}>
-            All Residents
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              size="small"
-              startIcon={<FilterListIcon />}
-              sx={{ color: '#2c3e50' }}
-            >
-              Sort
-            </Button>
-            <Button
-              size="small"
-              sx={{ color: '#2c3e50' }}
-            >
-              Update
-            </Button>
-          </Box>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', padding: 3 }}>
+          <CircularProgress />
         </Box>
-        
-        <TableContainer>
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead sx={{ bgcolor: '#e8f4fd' }}> {/* Light blue table header */}
+      ) : error ? (
+        <Snackbar open={true} autoHideDuration={6000} onClose={() => setError(null)}>
+          <Alert severity="error">{error}</Alert>
+        </Snackbar>
+      ) : (
+        <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Flat Info</TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Full Name</TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Tenant Type</TableCell>
-                <TableCell sx={{ fontWeight: "medium", color: "#2c3e50" }}>Dues</TableCell>
-                <TableCell></TableCell>
+                <TableCell>Full Name</TableCell>
+                <TableCell>Wing</TableCell>
+                <TableCell>Flat Number</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Dues</TableCell>
+                <TableCell>Contact</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {residents.map((resident) => (
-                <TableRow 
-                  key={resident.id} 
-                  sx={{ 
-                    transition: 'transform 0.2s ease-in-out',
-                    bgcolor: '#f0f8ff', // Same light blue for all rows
-                    '&:hover': { 
-                      transform: 'scale(1.01)',
-                      bgcolor: '#cce5ff' // Slightly darker blue on hover
-                    } 
-                  }}
-                >
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Box 
-                        component="div" 
-                        sx={{ 
-                          width: 40, 
-                          height: 40, 
-                          borderRadius: '50%', 
-                          bgcolor: '#2c3e50',
-                          color: 'white',
-                          mr: 2,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        {resident.name.charAt(0)}
-                      </Box>
-                      <Typography sx={{ color: "#2c3e50" }}> {/* Dark blue text for flat info */}
-                        {resident.flat}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography sx={{ color: "#2c3e50" }}> {/* Dark blue text for name */}
-                      {resident.name}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography sx={{ color: "#2c3e50" }}> {/* Dark blue text for tenant type */}
-                      {resident.type}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    {resident.dues !== 'NA' ? (
-                      <Box>
-                        <Typography variant="body2" sx={{ color: "#2c3e50", fontWeight: "medium" }}>{resident.dues}</Typography>
-                        <Typography variant="caption" sx={{ color: "#2c3e50" }}> {/* Dark blue text for due type */}
-                          {resident.dueType}
-                        </Typography>
-                      </Box>
-                    ) : (
-                      <Typography sx={{ color: "#2c3e50" }}>NA</Typography> 
-                    )}
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small" sx={{ color: '#2c3e50' }}>
-                      <MoreVertIcon />
-                    </IconButton>
-                  </TableCell>
+                <TableRow key={resident.id}>
+                  <TableCell>{resident.full_name}</TableCell>
+                  <TableCell>{resident.wing}</TableCell>
+                  <TableCell>{resident.flat_number}</TableCell>
+                  <TableCell>{resident.role}</TableCell>
+                  <TableCell>{resident.dues_amount}</TableCell>
+                  <TableCell>{resident.contact_info}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
+      )}
 
-      {/* Add Resident Dialog */}
-      <Dialog open={openAddDialog} onClose={handleCloseAddDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#f8f9fa", color: "#2c3e50" }}>Add New Resident</DialogTitle>
+      <Pagination 
+        count={totalPages} 
+        page={pagination.page} 
+        onChange={handlePageChange}
+        sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
+      />
+
+      <Dialog open={openAddDialog} onClose={handleCloseAddDialog}>
+        <DialogTitle>Add New Resident</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField
-              name="flat"
-              label="Flat Info"
-              fullWidth
-              value={newResident.flat}
-              onChange={handleInputChange}
-            />
-            
-            <TextField
-              name="name"
-              label="Full Name"
-              fullWidth
-              value={newResident.name}
-              onChange={handleInputChange}
-            />
-            
-            <FormControl fullWidth>
-              <InputLabel>Tenant Type</InputLabel>
-              <Select
-                name="type"
-                value={newResident.type}
-                label="Tenant Type"
-                onChange={handleInputChange}
-              >
-                <MenuItem value="Rentee">Rentee</MenuItem>
-                <MenuItem value="Owner">Owner</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <TextField
-              name="dues"
-              label="Dues Amount"
-              fullWidth
-              value={newResident.dues}
-              onChange={handleInputChange}
-              placeholder="e.g. ₹10,000 or NA"
-            />
-            
-            <FormControl fullWidth>
-              <InputLabel>Due Type</InputLabel>
-              <Select
-                name="dueType"
-                value={newResident.dueType}
-                label="Due Type"
-                onChange={handleInputChange}
-              >
-                <MenuItem value="Water Bill">Water Bill</MenuItem>
-                <MenuItem value="Maintenance fees">Maintenance fees</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <TextField label="Full Name" fullWidth name="full_name" value={newResident.full_name} onChange={handleInputChange} sx={{ mb: 2 }} />
+          <TextField label="Wing" fullWidth name="wing" value={newResident.wing} onChange={handleInputChange} sx={{ mb: 2 }} />
+          <TextField label="Flat Number" fullWidth name="flat_number" value={newResident.flat_number} onChange={handleInputChange} sx={{ mb: 2 }} />
+          <TextField label="Role" fullWidth name="role" value={newResident.role} onChange={handleInputChange} sx={{ mb: 2 }} />
+          <TextField label="Contact Info" fullWidth name="contact_info" value={newResident.contact_info} onChange={handleInputChange} sx={{ mb: 2 }} />
+          <TextField label="Dues Amount" fullWidth name="dues_amount" value={newResident.dues_amount} onChange={handleInputChange} sx={{ mb: 2 }} />
         </DialogContent>
-        <DialogActions sx={{ bgcolor: "#f8f9fa" }}>
-          <Button onClick={handleCloseAddDialog}>Cancel</Button>
-          <Button 
-            onClick={handleAddResident} 
-            variant="contained" 
-            sx={{ 
-              bgcolor: "#2c3e50", 
-              "&:hover": { bgcolor: "#1a252f" } 
-            }}
-            disabled={!newResident.flat || !newResident.name}
-          >
-            Add Resident
-          </Button>
+        <DialogActions>
+          <Button onClick={handleCloseAddDialog} color="secondary">Cancel</Button>
+          <Button onClick={handleAddResident} color="primary">Add</Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

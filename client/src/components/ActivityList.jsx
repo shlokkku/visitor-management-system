@@ -44,50 +44,56 @@ const ActivityList = ({ activities }) => {
           borderRadius: "10px"
         }
       }}>
-        {activities.map((item) => (
-          <Box 
-            key={item.id} 
-            sx={{
-              width: "100%",
-              padding: 2,
-              borderRadius: 1,
-              bgcolor: lightBg,
-              border: `1px solid rgba(44, 62, 80, 0.1)`,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 2,
-              transition: "all 0.2s ease",
-              "&:hover": {
-                boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                borderLeft: `3px solid ${secondaryColor}`
-              }
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Box sx={{
-                width: 40,
-                height: 40,
+        {activities.length === 0 ? (
+          <Typography sx={{ color: "#7f8c8d", textAlign: "center", mt: 4 }}>
+            No activity recorded at the main gate.
+          </Typography>
+        ) : (
+          activities.map((item) => (
+            <Box 
+              key={item.id} 
+              sx={{
+                width: "100%",
+                padding: 2,
                 borderRadius: 1,
-                bgcolor: `rgba(52, 152, 219, 0.2)`,
-                border: `1px solid ${secondaryColor}`,
+                bgcolor: lightBg,
+                border: `1px solid rgba(44, 62, 80, 0.1)`,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                mr: 2
-              }}>
-                <Typography sx={{ color: primaryColor, fontWeight: "medium" }}>{item.name}</Typography>
+                justifyContent: "space-between",
+                mb: 2,
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                  borderLeft: `3px solid ${secondaryColor}`
+                }
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 1,
+                  bgcolor: `rgba(52, 152, 219, 0.2)`,
+                  border: `1px solid ${secondaryColor}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mr: 2
+                }}>
+                  <Typography sx={{ color: primaryColor, fontWeight: "medium" }}>{item.name}</Typography>
+                </Box>
+                <Typography variant="body1" color={primaryColor}>
+                  {item.type} - {item.status}
+                </Typography>
               </Box>
-              <Typography variant="body1" color={primaryColor}>
-                {item.type} - {item.status}
+              <Typography variant="body2" color="#2c3e50" x={{ mr: 3 }}>
+                {item.entryTime !== 'Pending' ? new Date(item.entryTime).toLocaleString() : 'Pending'}
               </Typography>
             </Box>
-            <Typography variant="body2" color="#2c3e50" x={{ mr: 3 }}>
-              {new Date(item.entryTime).toLocaleString()}
-            </Typography>
-          </Box>
-        ))}
+          ))
+        )}
       </Box>
     </Paper>
   );

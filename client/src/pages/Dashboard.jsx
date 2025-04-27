@@ -13,7 +13,7 @@ import PendingDues from "../components/PendingDues";
 const Dashboard = () => {
   const theme = useTheme();
 
-  // Sample data - in a real app, this would come from API
+  // Sample data for stats
   const dashboardStats = [
     { title: "Total Tenants", value: 16, icon: <PeopleIcon sx={{ color: "#2c3e50", fontSize: 40 }} /> },
     { title: "Active Complaints", value: 4, icon: <ReportIcon sx={{ color: "#2c3e50", fontSize: 40 }} /> },
@@ -21,8 +21,7 @@ const Dashboard = () => {
     { title: "Security Alerts", value: 2, icon: <SecurityIcon sx={{ color: "#2c3e50", fontSize: 40 }} /> }
   ];
 
-  // Generate array of numbers for list items
-  const noticeItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  // Generate array of numbers for pending dues
   const dueItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   return (
@@ -35,7 +34,7 @@ const Dashboard = () => {
         overflow: "auto",
       }}
     >
-      {/* Dashboard Stats - equal sized cards */}
+      {/* Dashboard Stats */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         {dashboardStats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
@@ -44,22 +43,22 @@ const Dashboard = () => {
         ))}
       </Grid>
 
-      {/* Main Dashboard Content - Modified for equal height */}
+      {/* Main Dashboard Content */}
       <Grid container spacing={3}>
-        {/* Main Gate Activity - Reduced width */}
+        {/* Main Gate Activity */}
         <Grid item xs={12} md={7}>
-          <ActivityListContainer /> {/* Replacing static activityItems */}
+          <ActivityListContainer />
         </Grid>
 
-        {/* Right Column - Modified for equal height sections */}
+        {/* Right Column */}
         <Grid item xs={12} md={5}>
           <Grid container direction="column" spacing={3} sx={{ height: "calc(100vh - 240px)" }}>
-            {/* Notice Board - Equal Size */}
+            {/* Notice Board */}
             <Grid item xs={12} sx={{ height: "50%" }}>
-              <NoticeBoard notices={noticeItems} />
+              <NoticeBoard />
             </Grid>
             
-            {/* Pending Dues - Equal Size */}
+            {/* Pending Dues */}
             <Grid item xs={12} sx={{ height: "50%" }}>
               <PendingDues dues={dueItems} />
             </Grid>
