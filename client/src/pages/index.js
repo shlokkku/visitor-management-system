@@ -3,3 +3,4 @@ export { default as LegalDocuments } from './LegalDocuments';
 export { default as TenantManagement } from './TenantManagement';
 export { default as ParkingPage } from './ParkingPage';
 export { default as CommunicationPage } from './CommunicationPage';
+export {default as Complaints} from './Complaints'
