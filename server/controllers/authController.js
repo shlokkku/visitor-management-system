@@ -92,7 +92,7 @@ exports.residentSignin = async (req, res) => {
   }
 };
 
-// Admin Sign-up
+// Admin Sign-Up
 exports.adminSignup = async (req, res) => {
   try {
     const { email, password, name, contact_info } = req.body;
@@ -108,15 +108,15 @@ exports.adminSignup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Step 1: Insert the user into the Users table with a placeholder linked_id
+    // Step 1: Insert user into Users table
     const [userResult] = await db.execute(
       'INSERT INTO Users (email, password, user_type, linked_table, linked_id) VALUES (?, ?, ?, ?, ?)',
-      [email, hashedPassword, 'Admin', 'Admin', 0] // Placeholder for linked_id
+      [email, hashedPassword, 'Admin', 'Admin', 0]
     );
 
     const userId = userResult.insertId;
 
-    // Step 2: Insert the admin into the Admin table
+    // Step 2: Insert admin into Admin table
     const [adminResult] = await db.execute(
       'INSERT INTO Admin (user_id, name, contact_info) VALUES (?, ?, ?)',
       [userId, name, contact_info || null]
@@ -124,7 +124,7 @@ exports.adminSignup = async (req, res) => {
 
     const adminId = adminResult.insertId;
 
-    // Step 3: Update the linked_id in the Users table
+    // Step 3: Update linked_id in Users table
     await db.execute('UPDATE Users SET linked_id = ? WHERE id = ?', [adminId, userId]);
 
     res.status(201).json({
@@ -137,7 +137,7 @@ exports.adminSignup = async (req, res) => {
   }
 };
 
-// Admin Sign-in
+// Admin Sign-In
 exports.adminSignin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -161,13 +161,15 @@ exports.adminSignin = async (req, res) => {
     const [admins] = await db.execute('SELECT * FROM Admin WHERE user_id = ?', [user.id]);
     const admin = admins[0];
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.user_type }, process.env.JWT_SECRET, {
-      expiresIn: '24h',
-    });
-
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.user_type.toLowerCase() }, // Convert role to lowercase
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+    
     res.json({
       message: 'Login successful',
-      admin: { id: admin.id, email: user.email, name: admin.name },
+      admin: { id: admin.id, email: user.email, name: admin.name, role: user.user_type.toLowerCase() }, // Convert role to lowercase
       token,
     });
   } catch (error) {

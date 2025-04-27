@@ -66,55 +66,42 @@ exports.addDue = async (req, res) => {
       return res.status(400).json({ message: 'Tenant ID, amount, and due date are required.' });
     }
 
+    // Fetch the flat_id from the Residents table for the given tenantId
+    const [residentData] = await db.execute(
+      `SELECT id AS flat_id FROM Residents WHERE id = ?`,
+      [tenantId]
+    );
+
+    if (residentData.length === 0) {
+      return res.status(404).json({ message: 'Resident not found.' });
+    }
+
+    const flat_id = residentData[0].flat_id;
+
+    // Add due to the Dues table
     const [result] = await db.execute(`
       INSERT INTO Dues (tenant_id, amount, due_date, status, flat_id)
-      SELECT ?, ?, ?, 'Pending', r.id
-      FROM Residents r
-      WHERE r.id = ?
-    `, [tenantId, amount, due_date, tenantId]);
+      VALUES (?, ?, ?, 'Pending', ?)
+    `, [tenantId, amount, due_date, flat_id]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Resident not found or due not created.' });
+      return res.status(500).json({ message: 'Due not created.' });
     }
+
+    // Update dues_amount in the Residents table
+    await db.execute(`
+      UPDATE Residents
+      SET dues_amount = COALESCE(dues_amount, 0) + ?
+      WHERE id = ?
+    `, [amount, tenantId]);
 
     res.json({ message: 'Due added successfully' });
   } catch (error) {
+    console.error('Error adding due:', error.message);
     res.status(500).json({ message: 'Error adding due', error: error.message });
   }
 };
-exports.updateDuesByResidentId = async (req, res) => {
-  try {
-    const { id } = req.params; // Resident ID
-    const { amount, status, due_date } = req.body;
 
-    if (!amount || !status || !due_date) {
-      return res.status(400).json({ message: 'Amount, status, and due date are required.' });
-    }
-
-    // Update Dues Table
-    const [result] = await db.execute(`
-      UPDATE Dues
-      SET amount = ?, status = ?, due_date = ?
-      WHERE tenantId = ?
-    `, [amount, status, due_date, id]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Due not found.' });
-    }
-
-    // Update Residents Table
-    await db.execute(`
-      UPDATE Residents
-      SET dues_amount = ?, dues_type = ?
-      WHERE id = ?
-    `, [amount, status, id]);
-
-    res.json({ message: 'Dues updated successfully.' });
-  } catch (error) {
-    console.error('Error updating dues:', error);
-    res.status(500).json({ message: 'Error updating dues', error: error.message });
-  }
-};
 // Update dues (Admin only)
 exports.updateDuesByResidentId = async (req, res) => {
   try {
@@ -144,14 +131,30 @@ exports.updateDuesByResidentId = async (req, res) => {
     values.push(id);
 
     // Execute the update query
-    const [result] = await db.execute(
+    const [dueResult] = await db.execute(
       `UPDATE Dues SET ${fields.join(', ')} WHERE id = ?`,
       values
     );
 
-    // Check if the due was updated
-    if (result.affectedRows === 0) {
+    if (dueResult.affectedRows === 0) {
       return res.status(404).json({ message: 'Due not found or not updated.' });
+    }
+
+    // Update the Residents table
+    const [due] = await db.execute(`SELECT tenant_id, amount, status FROM Dues WHERE id = ?`, [id]);
+
+    if (due.length > 0 && due[0].status === 'Pending') {
+      await db.execute(`
+        UPDATE Residents
+        SET dues_amount = ?
+        WHERE id = ?
+      `, [due[0].amount, due[0].tenant_id]);
+    } else if (due.length > 0 && due[0].status === 'Cleared') {
+      await db.execute(`
+        UPDATE Residents
+        SET dues_amount = 0
+        WHERE id = ?
+      `, [due[0].tenant_id]);
     }
 
     res.json({ message: 'Due updated successfully.' });
@@ -170,6 +173,7 @@ exports.clearDuesByResidentId = async (req, res) => {
       return res.status(403).json({ message: 'Access denied.' });
     }
 
+    // Clear dues in the Dues table
     const [result] = await db.execute(`
       UPDATE Dues
       SET status = 'Cleared'
@@ -179,6 +183,13 @@ exports.clearDuesByResidentId = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Resident not found or dues not cleared.' });
     }
+
+    // Reset dues_amount in the Residents table
+    await db.execute(`
+      UPDATE Residents
+      SET dues_amount = 0
+      WHERE id = ?
+    `, [id]);
 
     res.json({ message: 'Dues cleared successfully' });
   } catch (error) {

@@ -23,7 +23,6 @@ const Signup = () => {
       ...formData,
       [e.target.name]: value,
     });
-    console.log(`Field: ${e.target.name}, Value: ${value}`); // Debugging input values
   };
 
   const handleSubmit = async (e) => {
@@ -40,22 +39,13 @@ const Signup = () => {
     const email = formData.email;
     const password = formData.password;
 
-    console.log('Signup Payload:', { name, email, password }); // Debugging payload
-
     try {
       setLoading(true);
-      const data = await signup(name, email, password); // Pass arguments directly
-      console.log('Signup Response:', data); // Debugging backend response
+      const data = await signup(name, email, password); // Call signup API
       setSuccess('Registration successful! Redirecting...');
-      setTimeout(() => navigate('/admin'), 2000);
+      setTimeout(() => navigate('/signin'), 2000); // Redirect to sign-in page
     } catch (err) {
-      console.error('Signup error:', err);
-      if (err.response && err.response.data) {
-        console.error('Error Details:', err.response.data); // Debugging backend error
-        setError(err.response.data.message || 'Registration failed');
-      } else {
-        setError('Network error. Please try again.');
-      }
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

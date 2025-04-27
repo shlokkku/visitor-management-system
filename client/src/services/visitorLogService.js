@@ -2,15 +2,87 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api/visitorlogs';
 
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 /**
  * Fetch visitor logs for admin
  * @returns {Promise<Array>} List of visitor logs
  */
 export const fetchVisitorLogs = async () => {
-  const response = await axios.get(API_BASE_URL, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
-  return response.data;
+  try {
+    const token = localStorage.getItem('token'); // Get token from localStorage
+    if (!token) {
+      throw new Error('Authentication required. Please log in.');
+    }
+
+    const response = await api.get('/', {
+      headers: { Authorization: `Bearer ${token}` }, // Include token
+    });
+    return response.data; // Return the visitor logs
+  } catch (error) {
+    console.error('Error fetching visitor logs:', error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to fetch visitor logs. Please try again later.'
+    );
+  }
 };
 
-export default { fetchVisitorLogs };
+/**
+ * Fetch a single visitor log by ID
+ * @param {string} id - Visitor log ID
+ * @returns {Promise<Object>} The visitor log
+ */
+export const fetchVisitorLogById = async (id) => {
+  try {
+    const token = localStorage.getItem('token'); // Get token from localStorage
+    if (!token) {
+      throw new Error('Authentication required. Please log in.');
+    }
+
+    const response = await api.get(`/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }, // Include token
+    });
+    return response.data; // Return the visitor log
+  } catch (error) {
+    console.error(`Error fetching visitor log with ID: ${id}`, error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to fetch the visitor log. Please try again later.'
+    );
+  }
+};
+
+/**
+ * Update visitor log status
+ * @param {string} id - Visitor log ID
+ * @param {Object} updateData - Data to update (e.g., { status, updated_by })
+ * @returns {Promise<Object>} Updated visitor log
+ */
+export const updateVisitorLogStatus = async (id, updateData) => {
+  try {
+    const token = localStorage.getItem('token'); // Get token from localStorage
+    if (!token) {
+      throw new Error('Authentication required. Please log in.');
+    }
+
+    const response = await api.put(`/${id}/status`, updateData, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json', // Specify JSON content type
+      },
+    });
+    return response.data; // Return the updated visitor log
+  } catch (error) {
+    console.error(`Error updating visitor log status with ID: ${id}`, error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to update visitor log status. Please try again later.'
+    );
+  }
+};
+
+export default { fetchVisitorLogs, fetchVisitorLogById, updateVisitorLogStatus };

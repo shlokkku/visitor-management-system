@@ -12,9 +12,12 @@ const SignIn = () => {
   const navigate = useNavigate();
 
   const loginSuccess = (data) => {
-    // Store the token if it's returned from the backend
+    // Store the token and user data if returned from the backend
     if (data.token) {
       localStorage.setItem('token', data.token);
+    }
+    if (data.admin) {
+      localStorage.setItem('user', JSON.stringify(data.admin));
     }
     setError('');
     setTimeout(() => {
@@ -28,11 +31,10 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      // Pass only email and password
-      const data = await signin(email, password);
-      loginSuccess(data);
+      const data = await signin(email, password); // Call signin API
+      loginSuccess(data); // Handle successful login
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred');
+      setError(err.response?.data?.message || 'Unauthorized Access. Please check your credentials.');
     } finally {
       setLoading(false);
     }
