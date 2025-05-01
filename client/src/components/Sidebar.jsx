@@ -7,6 +7,8 @@ import NotificationsIcon from "@mui/icons-material/Notifications"
 import SecurityIcon from "@mui/icons-material/Security"
 import SettingsIcon from "@mui/icons-material/Settings"
 import DescriptionIcon from "@mui/icons-material/Description"
+import AnnouncementIcon from '@mui/icons-material/Announcement';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import GridViewIcon from "@mui/icons-material/GridView"
 
 const Sidebar = ({ isMobile }) => {
@@ -18,10 +20,11 @@ const Sidebar = ({ isMobile }) => {
     { name: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
     { name: "Tenants", icon: <PeopleIcon />, path: "/admin/tenant-management" },
     { name: "Complaints", icon: <ReportIcon />, path: "/admin/complaints" },
-    { name: "Messages", icon: <NotificationsIcon />, path: "/admin/communications" },
     { name: "ParkingLot", icon: <SecurityIcon />, path: "/admin/parking" },
     { name: "Settings", icon: <SettingsIcon />, path: "/admin/settings" },
     { name: "Legal Documents", icon: <DescriptionIcon />, path: "/admin/legal-documents" },
+    { name: "Pending Dues", icon: < AccountBalanceWalletIcon/> , path: "/admin/pending-dues"},
+    { name: "Notice Board", icon: <AnnouncementIcon />, path: "/admin/notices"}
   ]
 
   return (

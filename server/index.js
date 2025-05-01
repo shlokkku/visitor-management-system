@@ -11,7 +11,18 @@ const guardRoutes = require('./routes/guards');
 const residentRoutes = require('./routes/residents');
 const complaintsRoutes = require('./routes/complaints');
 const parkingRoutes = require('./routes/parking');
+const documentRoutes = require('./routes/documents');
 require('dotenv').config();
+
+// --------- ADD THIS BLOCK AT THE VERY TOP (after require statements) ---------
+const fs = require('fs');
+const path = require('path');
+// Ensure uploads/documents directory exists for multer
+const uploadDir = path.join(__dirname, 'uploads', 'documents');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+// -----------------------------------------------------------------------------
 
 // Check for critical environment variables
 if (!process.env.CLIENT_URL) {
@@ -52,6 +63,7 @@ app.use('/api/residents', residentRoutes); // Resident-related routes
 app.use('/api/complaints', complaintsRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/parking', parkingRoutes);
+app.use('/api/documents', documentRoutes);
 app.get('/', (req, res) => res.send('Society Parking API'));
 // Handle unhandled routes
 app.use((req, res, next) => {
