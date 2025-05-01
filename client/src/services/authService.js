@@ -68,6 +68,20 @@ export const signin = async (email, password) => {
 };
 
 /**
+ * Sign in with Google
+ * @param {string} credential - Google ID token
+ * @returns {Promise<Object>} User data and JWT token on success
+ */
+export const googleSignIn = async (credential) => {
+  const response = await api.post('/api/auth/google', { token: credential });
+  if (response.data.user) {
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    localStorage.setItem('token', response.data.token);
+  }
+  return response.data;
+};
+
+/**
  * Log out admin
  */
 export const logout = () => {
@@ -76,4 +90,4 @@ export const logout = () => {
   window.location.href = '/login'; // Redirect to login page
 };
 
-export default { signup, signin, logout };
+export default { signup, signin, googleSignIn, logout };

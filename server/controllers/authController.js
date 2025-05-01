@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Resident Sign-up
 exports.residentSignup = async (req, res) => {
@@ -166,7 +168,7 @@ exports.adminSignin = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    
+
     res.json({
       message: 'Login successful',
       admin: { id: admin.id, email: user.email, name: admin.name, role: user.user_type.toLowerCase() }, // Convert role to lowercase
@@ -258,6 +260,112 @@ exports.guardSignin = async (req, res) => {
     });
   } catch (error) {
     console.error('Guard Signin Error:', error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Google Sign In
+exports.googleSignIn = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // Verify the ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId } = payload;
+
+    // Check if user exists
+    const [existingUsers] = await db.execute('SELECT * FROM Users WHERE email = ?', [email]);
+
+    let userId;
+    if (existingUsers.length > 0) {
+      // User exists, get their ID
+      userId = existingUsers[0].id;
+    } else {
+      // Create new resident entry first
+      const [residentResult] = await db.execute(
+        'INSERT INTO Residents (full_name, wing, flat_number, role) VALUES (?, ?, ?, ?)',
+        [name, 'A', '101', 'Tenant'] // Default values, can be updated later
+      );
+
+      const residentId = residentResult.insertId;
+
+      // Create new user with a null password since they authenticate through Google
+      const [userResult] = await db.execute(
+        'INSERT INTO Users (email, google_id, password, user_type, linked_table, linked_id, is_active) VALUES (?, ?, NULL, ?, ?, ?, TRUE)',
+        [email, googleId, 'Resident', 'Residents', residentId]
+      );
+
+      userId = userResult.insertId;
+    }
+
+    // Generate JWT token
+    const jwtToken = jwt.sign(
+      { id: userId, email, role: 'resident' },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      message: 'Google login successful',
+      token: jwtToken,
+      user: { id: userId, email, name }
+    });
+  } catch (error) {
+    console.error('Google Sign In Error:', error);
+    res.status(500).json({ message: 'Authentication failed', error: error.message });
+  }
+};
+
+// Exchange Google access token for ID token
+exports.exchangeGoogleToken = async (req, res) => {
+  try {
+    const { access_token } = req.body;
+
+    if (!access_token) {
+      return res.status(400).json({ message: 'Access token is required' });
+    }
+
+    // Make a request to Google's tokeninfo endpoint to get user info
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${access_token}`);
+    const tokenInfo = await response.json();
+
+    if (tokenInfo.error) {
+      return res.status(400).json({ message: 'Invalid access token', error: tokenInfo.error });
+    }
+
+    // Use Google's userinfo endpoint to get more user details
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        Authorization: `Bearer ${access_token}`
+      }
+    });
+
+    const userInfo = await userInfoResponse.json();
+
+    // Generate a custom ID token for your app
+    // This is a workaround since we don't have the original ID token
+    const id_token = jwt.sign(
+      {
+        sub: userInfo.sub,
+        email: userInfo.email,
+        name: userInfo.name,
+        picture: userInfo.picture,
+        iss: 'your-app', // issuer
+        aud: process.env.GOOGLE_CLIENT_ID, // audience
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600
+      },
+      process.env.JWT_SECRET
+    );
+
+    res.json({ id_token });
+  } catch (error) {
+    console.error('Token Exchange Error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

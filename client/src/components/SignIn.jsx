@@ -1,42 +1,121 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import Button from './Button';
-import { signin } from '../services/authService';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useState } from "react";
+import styled from "styled-components";
+import Button from "./Button";
+import { signin, googleSignIn } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 const SignIn = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const loginSuccess = (data) => {
-    // Store the token and user data if returned from the backend
     if (data.token) {
-      localStorage.setItem('token', data.token);
+      localStorage.setItem("token", data.token);
     }
-    if (data.admin) {
-      localStorage.setItem('user', JSON.stringify(data.admin));
+    if (data.user) {
+      localStorage.setItem("user", JSON.stringify(data.user));
     }
-    setError('');
+    setError("");
     setTimeout(() => {
-      navigate('/admin'); // Redirect to the admin dashboard
+      navigate("/admin");
     }, 2000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const data = await signin(email, password); // Call signin API
-      loginSuccess(data); // Handle successful login
+      const data = await signin(email, password);
+      loginSuccess(data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Unauthorized Access. Please check your credentials.');
+      setError(
+        err.response?.data?.message ||
+          "Unauthorized Access. Please check your credentials."
+      );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      if (window.google && google.accounts) {
+        // Check which Google API is available and use the appropriate method
+        if (google.accounts.id) {
+          // Use the newer Identity Services library
+          google.accounts.id.initialize({
+            client_id:
+              "205529855533-7vo9apoceklaoav95kqfkhm51dnf4fab.apps.googleusercontent.com",
+            callback: async (credentialResponse) => {
+              try {
+                // This response contains the id_token in the credential property
+                const data = await googleSignIn(credentialResponse.credential);
+                loginSuccess(data);
+              } catch (error) {
+                setError("Google sign in failed. Please try again.");
+                console.error("Google Sign In Error:", error);
+              }
+            },
+          });
+
+          google.accounts.id.prompt();
+        } else if (google.accounts.oauth2) {
+          // Use the OAuth2 API
+          const tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id:
+              "205529855533-7vo9apoceklaoav95kqfkhm51dnf4fab.apps.googleusercontent.com",
+            scope: "email profile openid",
+            callback: async (response) => {
+              try {
+                console.log("Google response:", response);
+
+                // If using the OAuth 2.0 flow, you need to exchange the access_token
+                // for an id_token on your server or use a separate endpoint
+
+                // Create a form data object to send to your backend
+                const formData = new FormData();
+                formData.append("access_token", response.access_token);
+
+                // Call a backend endpoint that will exchange the access_token for an id_token
+                const exchangeResponse = await fetch(
+                  "/api/auth/exchange-google-token",
+                  {
+                    method: "POST",
+                    body: formData,
+                  }
+                );
+
+                const tokenData = await exchangeResponse.json();
+
+                if (tokenData.id_token) {
+                  const data = await googleSignIn(tokenData.id_token);
+                  loginSuccess(data);
+                } else {
+                  setError("Failed to get ID token from server");
+                }
+              } catch (error) {
+                setError("Google sign in failed. Please try again.");
+                console.error("Google Sign In Error:", error);
+              }
+            },
+          });
+
+          tokenClient.requestAccessToken();
+        } else {
+          setError("Google authentication library not properly loaded");
+        }
+      } else {
+        setError("Google authentication is not available");
+      }
+    } catch (error) {
+      setError("Failed to initialize Google Sign In");
+      console.error("Google Sign In Error:", error);
     }
   };
 
@@ -45,40 +124,45 @@ const SignIn = () => {
       <form className="form" onSubmit={handleSubmit}>
         <p className="title">Sign In</p>
         <p className="message">Sign in to your account</p>
-        
+
         {error && <p className="error-message">{error}</p>}
-        
+
         <label>
-          <input 
-            className="input" 
-            type="email" 
-            placeholder="" 
-            required 
+          <input
+            className="input"
+            type="email"
+            placeholder=""
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <span>Email</span>
         </label>
-        
+
         <label>
-          <input 
-            className="input" 
-            type="password" 
-            placeholder="" 
-            required 
+          <input
+            className="input"
+            type="password"
+            placeholder=""
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <span>Password</span>
         </label>
-        
+
         <button className="submit" disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? "Signing in..." : "Sign In"}
         </button>
-        
-        <Button className="google-button" />
-        
-        <p className="signup">Do not have an account? <a href="/signup">Sign Up</a></p>
+
+        {/* Google Sign In Button */}
+        <div className="google-button-container">
+          <Button onClick={handleGoogleSignIn} />
+        </div>
+
+        <p className="signup">
+          Do not have an account? <a href="/signup">Sign Up</a>
+        </p>
       </form>
     </StyledWrapper>
   );
@@ -111,7 +195,8 @@ const StyledWrapper = styled.div`
     text-align: center;
   }
 
-  .message, .signup {
+  .message,
+  .signup {
     color: rgba(88, 87, 87, 0.822);
     font-size: 16px;
     text-align: center;
@@ -150,12 +235,12 @@ const StyledWrapper = styled.div`
     pointer-events: none;
   }
 
-  .input:focus + span, 
+  .input:focus + span,
   .input:valid + span {
     top: 12px;
     font-size: 0.6em;
     font-weight: 600;
-    color: #1B0B2C;
+    color: #1b0b2c;
   }
 
   .submit {
@@ -179,27 +264,10 @@ const StyledWrapper = styled.div`
     text-align: center;
   }
 
-  .google-button {
-    cursor: pointer;
-    color: black;
+  .google-button-container {
+    margin: 10px 0;
     display: flex;
-    gap: 5px;
-    align-items: center;
-    background-color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-  }
-
-  .google-button:hover {
-    background-color: #e0e0e0;
-  }
-
-  .google-icon {
-    width: 24px;
-    height: 24px;
+    justify-content: center;
   }
 `;
 
