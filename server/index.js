@@ -9,6 +9,8 @@ const duesRoutes = require('./routes/dues');
 const noticeRoutes = require('./routes/notices');
 const guardRoutes = require('./routes/guards');
 const residentRoutes = require('./routes/residents');
+const complaintsRoutes = require('./routes/complaints');
+const parkingRoutes = require('./routes/parking');
 require('dotenv').config();
 
 // Check for critical environment variables
@@ -47,7 +49,10 @@ app.use('/api/notices', noticeRoutes); // Notices-related routes
 app.use('/api/visitorlogs', visitorLogRoutes); // Visitor log routes
 app.use('/api/guards', guardRoutes); // Guard-related routes
 app.use('/api/residents', residentRoutes); // Resident-related routes
-
+app.use('/api/complaints', complaintsRoutes);
+app.use('/uploads', express.static('uploads'));
+app.use('/api/parking', parkingRoutes);
+app.get('/', (req, res) => res.send('Society Parking API'));
 // Handle unhandled routes
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });
@@ -58,6 +63,7 @@ app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   res.status(500).json({ message: 'Internal server error', error: err.message });
 });
+
 
 // Socket.IO events
 io.on('connection', (socket) => {
