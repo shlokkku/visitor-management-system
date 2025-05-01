@@ -36,8 +36,9 @@ const NoticeBoard = () => {
       elevation={1} 
       sx={{ 
         height: "100%", 
+        minHeight: { xs: "300px", sm: "400px" },
         borderRadius: 2, 
-        padding: 2,
+        padding: { xs: 1.5, sm: 2 },
         display: "flex",
         flexDirection: "column",
         transition: "box-shadow 0.3s ease",
@@ -48,7 +49,12 @@ const NoticeBoard = () => {
         borderTop: `3px solid ${secondaryColor}`
       }}
     >
-      <Typography variant="h6" component="h3" sx={{ mb: 2, fontWeight: "normal", color: primaryColor }}>
+      <Typography variant="h6" component="h3" sx={{ 
+        mb: 2, 
+        fontWeight: "normal", 
+        color: primaryColor,
+        fontSize: { xs: "1rem", sm: "1.25rem" }
+      }}>
         Notice Board
       </Typography>
       <Box sx={{ 
@@ -79,7 +85,7 @@ const NoticeBoard = () => {
             <Box 
               key={item.id} 
               sx={{
-                p: 2,
+                p: { xs: 1.5, sm: 2 },
                 mb: 2,
                 borderRadius: 1,
                 bgcolor: lightBg,
@@ -96,8 +102,8 @@ const NoticeBoard = () => {
             >
               <Box 
                 sx={{
-                  width: 40,
-                  height: 40,
+                  width: { xs: 32, sm: 40 },
+                  height: { xs: 32, sm: 40 },
                   borderRadius: 1,
                   bgcolor: `rgba(52, 152, 219, 0.2)`,
                   border: `1px solid ${secondaryColor}`,
@@ -107,9 +113,17 @@ const NoticeBoard = () => {
                   mr: 2
                 }}
               >
-                <Typography sx={{ color: primaryColor, fontWeight: "medium" }}>{item.title.charAt(0)}</Typography>
+                <Typography sx={{ 
+                  color: primaryColor, 
+                  fontWeight: "medium",
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" }
+                }}>
+                  {item.title.charAt(0)}
+                </Typography>
               </Box>
-              <Typography color="black" variant="body2">
+              <Typography color="black" variant="body2" sx={{
+                fontSize: { xs: "0.875rem", sm: "1rem" }
+              }}>
                 {item.title} {/* Render the title of the notice */}
               </Typography>
             </Box>

@@ -10,9 +10,10 @@ const ActivityList = ({ activities }) => {
     <Paper 
       elevation={1} 
       sx={{ 
-        height: "calc(100vh - 240px)", 
+        height: { xs: "auto", md: "calc(100vh - 240px)" }, 
+        minHeight: { xs: "300px", sm: "400px" },
         borderRadius: 2, 
-        padding: 2,
+        padding: { xs: 1.5, sm: 2 },
         display: "flex",
         flexDirection: "column",
         transition: "box-shadow 0.3s ease",
@@ -23,7 +24,12 @@ const ActivityList = ({ activities }) => {
         borderTop: `3px solid ${secondaryColor}`
       }}
     >
-      <Typography variant="h6" component="h3" sx={{ mb: 2, fontWeight: "normal", color: primaryColor }}>
+      <Typography variant="h6" component="h3" sx={{ 
+        mb: 2, 
+        fontWeight: "normal", 
+        color: primaryColor,
+        fontSize: { xs: "1rem", sm: "1.25rem" }
+      }}>
         Main Gate Activity
       </Typography>
       
@@ -54,14 +60,15 @@ const ActivityList = ({ activities }) => {
               key={item.id} 
               sx={{
                 width: "100%",
-                padding: 2,
+                padding: { xs: 1.5, sm: 2 },
                 borderRadius: 1,
                 bgcolor: lightBg,
                 border: `1px solid rgba(44, 62, 80, 0.1)`,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                flexDirection: { xs: "column", sm: "row" },
+                alignItems: { xs: "flex-start", sm: "center" },
+                justifyContent: { sm: "space-between" },
                 mb: 2,
                 transition: "all 0.2s ease",
                 "&:hover": {
@@ -70,10 +77,14 @@ const ActivityList = ({ activities }) => {
                 }
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Box sx={{ 
+                display: "flex", 
+                alignItems: "center",
+                mb: { xs: 1, sm: 0 }
+              }}>
                 <Box sx={{
-                  width: 40,
-                  height: 40,
+                  width: { xs: 32, sm: 40 },
+                  height: { xs: 32, sm: 40 },
                   borderRadius: 1,
                   bgcolor: `rgba(52, 152, 219, 0.2)`,
                   border: `1px solid ${secondaryColor}`,
@@ -82,14 +93,25 @@ const ActivityList = ({ activities }) => {
                   justifyContent: "center",
                   mr: 2
                 }}>
-                  <Typography sx={{ color: primaryColor, fontWeight: "medium" }}>{item.name}</Typography>
+                  <Typography sx={{ 
+                    color: primaryColor, 
+                    fontWeight: "medium",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" }
+                  }}>
+                    {item.name}
+                  </Typography>
                 </Box>
-                <Typography variant="body1" color={primaryColor}>
+                <Typography variant="body1" color={primaryColor} sx={{
+                  fontSize: { xs: "0.875rem", sm: "1rem" }
+                }}>
                   {item.type} - {item.status}
                 </Typography>
               </Box>
-              <Typography variant="body2" color="#2c3e50" x={{ mr: 3 }}>
-                {item.entryTime !== 'Pending' ? new Date(item.entryTime).toLocaleString() : 'Pending'}
+              <Typography variant="body2" color="#2c3e50" sx={{ 
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                mt: { xs: 1, sm: 0 }
+              }}>
+
               </Typography>
             </Box>
           ))
