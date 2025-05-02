@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // Update with your backend server's URL
+const API_BASE_URL = 'http://localhost:5000'; 
 
-// Create Axios instance
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -10,12 +10,12 @@ const api = axios.create({
   },
 });
 
-// Add Authorization header with the token for all requests
+
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); // Retrieve token from localStorage
+    const token = localStorage.getItem('token'); 
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`; // Set token in headers
+      config.headers['Authorization'] = `Bearer ${token}`; 
     }
     return config;
   },
@@ -24,15 +24,13 @@ api.interceptors.request.use(
   }
 );
 
-// Handle responses with 401 Unauthorized (e.g., expired or invalid token)
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login'; // Redirect to login page
+      localStorage.removeItem('user');// Redirect to login page
     }
     return Promise.reject(error);
   }
@@ -61,19 +59,17 @@ export const signup = async (name, email, password) => {
 export const signin = async (email, password) => {
   const response = await api.post('/api/auth/admin/signin', { email, password });
   if (response.data.admin) {
-    localStorage.setItem('user', JSON.stringify(response.data.admin)); // Store user data
-    localStorage.setItem('token', response.data.token); // Store token
+    localStorage.setItem('user', JSON.stringify(response.data.admin)); 
+    localStorage.setItem('token', response.data.token); 
   }
   return response.data;
 };
 
-/**
- * Log out admin
- */
+
 export const logout = () => {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
-  window.location.href = '/login'; // Redirect to login page
+  window.location.href = '/login'; 
 };
 
 export default { signup, signin, logout };

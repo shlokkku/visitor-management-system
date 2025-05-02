@@ -1,46 +1,54 @@
-import { Box, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material"
-import { NavLink } from "react-router-dom"
-import DashboardIcon from "@mui/icons-material/Dashboard"
-import PeopleIcon from "@mui/icons-material/People"
-import ReportIcon from "@mui/icons-material/Report"
-import NotificationsIcon from "@mui/icons-material/Notifications"
-import SecurityIcon from "@mui/icons-material/Security"
-import SettingsIcon from "@mui/icons-material/Settings"
-import DescriptionIcon from "@mui/icons-material/Description"
+import { Box, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import { NavLink } from "react-router-dom";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PeopleIcon from "@mui/icons-material/People";
+import ReportIcon from "@mui/icons-material/Report";
+import SecurityIcon from "@mui/icons-material/Security";
+import SettingsIcon from "@mui/icons-material/Settings";
+import DescriptionIcon from "@mui/icons-material/Description";
 import AnnouncementIcon from '@mui/icons-material/Announcement';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import GridViewIcon from "@mui/icons-material/GridView"
+import GridViewIcon from "@mui/icons-material/GridView";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const Sidebar = ({ isMobile }) => {
-  // Modern color scheme
-  const bgGradient = "linear-gradient(180deg, #1e293b, #334155)"
-
-  // Define menu items with properly assigned icons
+  const bgGradient = "linear-gradient(180deg, #1e293b, #334155)";
   const menuItems = [
     { name: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
     { name: "Tenants", icon: <PeopleIcon />, path: "/admin/tenant-management" },
     { name: "Complaints", icon: <ReportIcon />, path: "/admin/complaints" },
     { name: "ParkingLot", icon: <SecurityIcon />, path: "/admin/parking" },
-    { name: "Settings", icon: <SettingsIcon />, path: "/admin/settings" },
     { name: "Legal Documents", icon: <DescriptionIcon />, path: "/admin/legal-documents" },
-    { name: "Pending Dues", icon: < AccountBalanceWalletIcon/> , path: "/admin/pending-dues"},
-    { name: "Notice Board", icon: <AnnouncementIcon />, path: "/admin/notices"}
-  ]
+    { name: "Pending Dues", icon: <AccountBalanceWalletIcon/>, path: "/admin/pending-dues" },
+    { name: "Notice Board", icon: <AnnouncementIcon />, path: "/admin/notices" },
+    { name: "Profile", icon: <AccountCircleIcon />, path: "/admin/profile" },
+    { name: "Settings", icon: <SettingsIcon />, path: "/admin/settings" }
+  ];
 
   return (
     <Box
       sx={{
-        width: "100%",
-        height: "100%",
+        width: "100vw", 
+        maxWidth: "260px", 
+        height: "100vh",
         background: bgGradient,
         color: "white",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
         overflowX: "hidden",
+        position: "fixed", 
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: "auto",
+        zIndex: 1300, 
+        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        padding: 0, 
+        margin: 0, 
+        borderRadius: 0,
       }}
     >
-      {/* App Logo and Title */}
       <Box
         sx={{
           display: "flex",
@@ -68,15 +76,12 @@ const Sidebar = ({ isMobile }) => {
           Admin Panel
         </Typography>
       </Box>
-
-      {/* Navigation menu */}
       <List sx={{ width: "100%", padding: "12px 0" }}>
-        {menuItems.map((item, index) => (
+        {menuItems.map((item) => (
           <ListItem
-            button
             component={NavLink}
             to={item.path}
-            key={index}
+            key={item.path}
             sx={{
               padding: {
                 xs: "10px 20px",
@@ -98,6 +103,7 @@ const Sidebar = ({ isMobile }) => {
                 backgroundColor: "rgba(255, 255, 255, 0.05)",
               },
               transition: "all 0.2s ease",
+              textDecoration: "none",
             }}
           >
             <ListItemIcon
@@ -129,7 +135,7 @@ const Sidebar = ({ isMobile }) => {
         ))}
       </List>
     </Box>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

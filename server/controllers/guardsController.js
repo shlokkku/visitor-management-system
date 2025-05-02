@@ -1,7 +1,6 @@
 const db = require('../config/db');
 const Guard = require('../models/Guard.mysql');
 
-// Get all guards (Admin only)
 exports.getAllGuards = async (req, res) => {
   try {
     const [guards] = await db.execute(`
@@ -18,7 +17,7 @@ exports.getAllGuards = async (req, res) => {
   }
 };
 
-// Add a new guard (Admin only)
+
 exports.addGuard = async (req, res) => {
   try {
     const { email, password, name, contact_info, shift_time } = req.body;
@@ -27,13 +26,12 @@ exports.addGuard = async (req, res) => {
       return res.status(400).json({ message: 'Email, password, name, and contact info are required.' });
     }
 
-    // Check if email already exists
+ 
     const [existingUsers] = await db.execute('SELECT * FROM Users WHERE email = ?', [email]);
     if (existingUsers.length > 0) {
       return res.status(400).json({ message: 'Guard with this email already exists.' });
     }
 
-    // Hash the password and create the user
     const hashedPassword = await bcrypt.hash(password, 10);
     const [userResult] = await db.execute(
       'INSERT INTO Users (email, password, user_type, linked_table) VALUES (?, ?, ?, ?)',
@@ -42,7 +40,6 @@ exports.addGuard = async (req, res) => {
 
     const userId = userResult.insertId;
 
-    // Create the guard
     const guardId = await Guard.create({ user_id: userId, name, contact_info, shift_time });
 
     res.status(201).json({
@@ -55,7 +52,7 @@ exports.addGuard = async (req, res) => {
   }
 };
 
-// Update guard details (Admin only)
+
 exports.updateGuard = async (req, res) => {
   try {
     const { id } = req.params;
@@ -99,12 +96,12 @@ exports.updateGuard = async (req, res) => {
   }
 };
 
-// Delete a guard (Admin only)
+
 exports.deleteGuard = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Delete the related user from the Users table
+   
     const [result] = await db.execute('DELETE FROM Users WHERE id = (SELECT user_id FROM Guards WHERE id = ?)', [id]);
 
     if (result.affectedRows === 0) {

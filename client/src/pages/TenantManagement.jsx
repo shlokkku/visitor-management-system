@@ -25,7 +25,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 
-const API_URL = '/api/residents'; // Backend API base URL
+const API_URL = '/api/residents'; 
 
 const TenantManagement = () => {
   const [residents, setResidents] = useState([]);
@@ -43,14 +43,14 @@ const TenantManagement = () => {
     dues_type: 'Water Bill',
     contact_info: ''
   });
-  const [searchQuery, setSearchQuery] = useState(''); // For holding the search query
+  const [searchQuery, setSearchQuery] = useState(''); 
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Fetch residents with search query and pagination
+ 
   const fetchResidents = async (page = 1, limit = 10, query = '') => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token'); // Fetch token from localStorage
+      const token = localStorage.getItem('token'); 
   
       if (!token) {
         setError('No token found, please log in again.');
@@ -60,7 +60,7 @@ const TenantManagement = () => {
   
       const response = await axios.get(`${API_URL}?page=${page}&limit=${limit}&search=${query}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the request header
+          Authorization: `Bearer ${token}`,
         }
       });
   
@@ -78,7 +78,7 @@ const TenantManagement = () => {
     }
   };
   
-  // Run the fetchResidents whenever searchQuery changes
+
   useEffect(() => {
     fetchResidents(pagination.page, pagination.limit, searchQuery);
   }, [pagination.page, pagination.limit, searchQuery]);
@@ -115,7 +115,7 @@ const TenantManagement = () => {
         dues_type: newResident.dues_type
       };
       
-      const token = localStorage.getItem('token'); // Fetch token from localStorage
+      const token = localStorage.getItem('token');
       if (!token) {
         setSnackbar({ open: true, message: 'No token found, please log in again.', severity: 'error' });
         return;
@@ -123,7 +123,7 @@ const TenantManagement = () => {
 
       const response = await axios.post(API_URL, payload, {
         headers: {
-          Authorization: `Bearer ${token}`, // Include token in request header
+          Authorization: `Bearer ${token}`, 
         }
       });
 

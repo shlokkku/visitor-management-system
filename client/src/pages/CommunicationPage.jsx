@@ -17,7 +17,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 
-// Theme Colors - refined to match the image
+
 const THEME = {
   primary: "#1a73e8",
   secondary: "#f5f5f5",
@@ -32,7 +32,7 @@ const THEME = {
   onlineGreen: "#4caf50"
 };
 
-// Mock Data
+
 const MOCK_THREADS = [
   {
     id: 'thread1',

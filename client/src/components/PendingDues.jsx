@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Box, Typography, Paper } from "@mui/material"
-import { api } from "../services/authService" // Make sure to import the Axios instance
+import { api } from "../services/authService" 
 
 const PendingDues = () => {
   const [dues, setDues] = useState([])
@@ -11,17 +11,17 @@ const PendingDues = () => {
   const secondaryColor = "#3498db"
   const lightBg = "rgba(52, 152, 219, 0.08)"
 
-  // Fetch dues data when the component mounts
+  
   useEffect(() => {
     const fetchDues = async () => {
       try {
-        const response = await api.get("/api/dues") // Use your Axios instance to make the request
+        const response = await api.get("/api/dues") 
         console.log("Dues data:", response.data)
         setDues(response.data)
       } catch (error) {
         if (error.response && error.response.status === 401) {
           console.error("Unauthorized access, redirecting to login...")
-          window.location.href = "/login" // Redirect to login if 401 occurs
+          window.location.href = "/login" 
         } else {
           console.error("Error fetching dues:", error)
         }
@@ -31,7 +31,12 @@ const PendingDues = () => {
     }
 
     fetchDues()
-  }, []) // Empty dependency array ensures this runs only once when the component mounts
+  }, [])
+
+  
+  const getDueKey = (item, idx) => {
+    return `${item.id || ""}-${item.wing || ""}-${item.flat_number || ""}-${idx}`;
+  };
 
   return (
     <Paper
@@ -75,9 +80,9 @@ const PendingDues = () => {
         {loading ? (
           <Typography>Loading...</Typography>
         ) : dues.length > 0 ? (
-          dues.map((item) => (
+          dues.map((item, idx) => (
             <Box
-              key={item.id}
+              key={getDueKey(item, idx)}
               sx={{
                 p: { xs: 1.5, sm: 2 },
                 mb: 2,

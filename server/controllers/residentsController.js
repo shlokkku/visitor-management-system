@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// Get all residents
+
 exports.getAllResidents = async (req, res) => {
   try {
     const { page = 1, limit = 10, search = '', wing, flat_number, sortBy = 'wing', order = 'asc' } = req.query;
@@ -92,7 +92,7 @@ exports.getAllResidents = async (req, res) => {
   }
 };
 
-// Add a new resident
+
 exports.addResident = async (req, res) => {
   try {
     const { full_name, wing, flat_number, role, contact_info, email, password } = req.body;
@@ -150,7 +150,7 @@ exports.addResident = async (req, res) => {
 };
 
 
-// Update a resident
+
 exports.updateResident = async (req, res) => {
   try {
     const { id } = req.params;
@@ -203,7 +203,7 @@ exports.updateResident = async (req, res) => {
   }
 };
 
-// Get a resident by ID
+
 exports.getResidentById = async (req, res) => {
   try {
     const { id } = req.params;

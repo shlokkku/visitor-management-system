@@ -60,7 +60,7 @@ exports.getAllComplaints = async (req, res) => {
   }
 };
 
-// 4. Get complaint detail (admin or resident who created it)
+// 4. Get complaint detail 
 exports.getComplaintDetail = async (req, res) => {
   try {
     const user = await getUserById(req.user.id);
@@ -77,7 +77,7 @@ exports.getComplaintDetail = async (req, res) => {
   }
 };
 
-// 5. Add comment (admin or resident who owns complaint)
+// 5. Add comment 
 exports.addComment = async (req, res) => {
   try {
     const user = await getUserById(req.user.id);
@@ -114,7 +114,7 @@ exports.addComment = async (req, res) => {
   }
 };
 
-// 6. Add attachment (admin or resident who owns complaint)
+// 6. Add attachment
 exports.addAttachment = async (req, res) => {
   try {
     const user = await getUserById(req.user.id);

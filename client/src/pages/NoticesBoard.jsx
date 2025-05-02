@@ -1,27 +1,32 @@
 import React, { useEffect, useState } from "react";
 import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, CircularProgress
+  Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, CircularProgress, InputAdornment
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import SearchIcon from "@mui/icons-material/Search";
 import { api } from "../services/authService";
 
 const NoticesBoard = () => {
   const [notices, setNotices] = useState([]);
+  const [filteredNotices, setFilteredNotices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [title, setTitle] = useState("");
-  const [message, setMessage] = useState("");
+  const [content, setContent] = useState("");
+  const [expirationDate, setExpirationDate] = useState("");
   const [editing, setEditing] = useState(null);
   const [info, setInfo] = useState("");
+  const [search, setSearch] = useState("");
 
   const fetchNotices = async () => {
     setLoading(true);
     try {
       const res = await api.get("/api/notices");
       setNotices(res.data);
+      setFilteredNotices(res.data);
     } catch (e) {
       setInfo("Failed to load notices");
     }
@@ -32,15 +37,39 @@ const NoticesBoard = () => {
     fetchNotices();
   }, []);
 
+ 
+  useEffect(() => {
+    if (!search.trim()) {
+      setFilteredNotices(notices);
+    } else {
+      const lower = search.toLowerCase();
+      setFilteredNotices(
+        notices.filter(
+          n =>
+            (n.title && n.title.toLowerCase().includes(lower)) ||
+            (n.content && n.content.toLowerCase().includes(lower)) ||
+            (n.date_posted && new Date(n.date_posted).toLocaleDateString().includes(lower)) ||
+            (n.expiration_date && new Date(n.expiration_date).toLocaleDateString().includes(lower))
+        )
+      );
+    }
+  }, [search, notices]);
+
   const handleOpenDialog = (notice = null) => {
     if (notice) {
-      setEditing(notice._id);
-      setTitle(notice.title);
-      setMessage(notice.message);
+      setEditing(notice.id);
+      setTitle(notice.title || "");
+      setContent(notice.content || "");
+      setExpirationDate(
+        notice.expiration_date
+          ? notice.expiration_date.substr(0, 10)
+          : ""
+      );
     } else {
       setEditing(null);
       setTitle("");
-      setMessage("");
+      setContent("");
+      setExpirationDate("");
     }
     setOpenDialog(true);
   };
@@ -48,17 +77,26 @@ const NoticesBoard = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setTitle("");
-    setMessage("");
+    setContent("");
+    setExpirationDate("");
     setEditing(null);
   };
 
   const handleSave = async () => {
     try {
       if (editing) {
-        await api.put(`/api/notices/${editing}`, { title, message });
+        await api.put(`/api/notices/${editing}`, {
+          title,
+          content,
+          expiration_date: expirationDate || null,
+        });
         setInfo("Notice updated!");
       } else {
-        await api.post("/api/notices", { title, message });
+        await api.post("/api/notices", {
+          title,
+          content,
+          expiration_date: expirationDate || null,
+        });
         setInfo("Notice added!");
       }
       fetchNotices();
@@ -71,7 +109,7 @@ const NoticesBoard = () => {
   const handleDelete = async (notice) => {
     if (!window.confirm("Delete this notice?")) return;
     try {
-      await api.delete(`/api/notices/${notice._id}`);
+      await api.delete(`/api/notices/${notice.id}`);
       setInfo("Notice deleted.");
       fetchNotices();
     } catch (e) {
@@ -80,18 +118,34 @@ const NoticesBoard = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: "auto", mt: 5, p: 3 }}>
+    <Box sx={{ maxWidth: 900, mx: "auto", mt: 5, p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Society Notice Board
       </Typography>
-      <Button
-        variant="contained"
-        sx={{ mb: 2 }}
-        startIcon={<AddIcon />}
-        onClick={() => handleOpenDialog()}
-      >
-        Add Notice
-      </Button>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+        <TextField
+          placeholder="Search notices (title, message, date...)"
+          fullWidth
+          size="small"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mr: 2 }}
+        />
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
+        >
+          Add Notice
+        </Button>
+      </Box>
       {info && <Typography color="primary" sx={{ mb: 2 }}>{info}</Typography>}
       {loading ? (
         <CircularProgress />
@@ -102,25 +156,31 @@ const NoticesBoard = () => {
               <TableRow>
                 <TableCell>Title</TableCell>
                 <TableCell>Message</TableCell>
-                <TableCell>Date</TableCell>
+                <TableCell>Date Posted</TableCell>
+                <TableCell>Expires On</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {notices.length === 0 ? (
+              {filteredNotices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
+                  <TableCell colSpan={5} align="center">
                     No notices found.
                   </TableCell>
                 </TableRow>
               ) : (
-                notices.map((notice) => (
-                  <TableRow key={notice._id}>
+                filteredNotices.map((notice) => (
+                  <TableRow key={notice.id}>
                     <TableCell>{notice.title}</TableCell>
-                    <TableCell>{notice.message}</TableCell>
+                    <TableCell>{notice.content}</TableCell>
                     <TableCell>
-                      {notice.date
-                        ? new Date(notice.date).toLocaleString()
+                      {notice.date_posted
+                        ? new Date(notice.date_posted).toLocaleString()
+                        : ""}
+                    </TableCell>
+                    <TableCell>
+                      {notice.expiration_date
+                        ? new Date(notice.expiration_date).toLocaleDateString()
                         : ""}
                     </TableCell>
                     <TableCell align="right">
@@ -145,22 +205,31 @@ const NoticesBoard = () => {
           <TextField
             label="Title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={e => setTitle(e.target.value)}
             fullWidth
             sx={{ mb: 2 }}
           />
           <TextField
             label="Message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            value={content}
+            onChange={e => setContent(e.target.value)}
             fullWidth
             multiline
             minRows={3}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Expires On"
+            type="date"
+            value={expirationDate}
+            onChange={e => setExpirationDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained" disabled={!title || !message}>
+          <Button onClick={handleSave} variant="contained" disabled={!title || !content}>
             {editing ? "Update" : "Add"}
           </Button>
         </DialogActions>

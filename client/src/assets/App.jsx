@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom"
-import { Link } from "react-router-dom"
-// Authentication Components
-import Signup from "../components/Signup"
-import SignIn from "../components/SignIn"
-// Remove Dashboard import that's causing the error
-import Sidebar from "../components/Sidebar"
-import Navbar from "../components/Navbar"
+import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import Signup from "../components/Signup";
+import SignIn from "../components/SignIn";
+import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+import Settings from "../pages/Settings";
+import AdminProfile from "../pages/AdminProfile";
 import {
   Dashboard as AdminDashboard,
   LegalDocuments,
@@ -18,122 +18,100 @@ import {
   Complaints,
   NoticesBoard,
   PendingsDues
-} from "../pages"
+} from "../pages";
+import { api } from "../services/authService";
 
-// Inline component definitions to avoid import errors
-const Unauthorized = () => {
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        textAlign: "center",
-        padding: "20px",
-      }}
-    >
-      <h1>Unauthorized Access</h1>
-      <p>You don't have permission to access this page.</p>
-      <div style={{ marginTop: "20px" }}>
-        <Link
-          to="/admin"
-          style={{
-            marginRight: "10px",
-            padding: "8px 16px",
-            background: "#f0f0f0",
-            textDecoration: "none",
-            borderRadius: "4px",
-            color: "#333",
-          }}
-        >
-          Go to Dashboard
-        </Link>
-        <Link
-          to="/signin"
-          style={{
-            padding: "8px 16px",
-            background: "#007bff",
-            textDecoration: "none",
-            borderRadius: "4px",
-            color: "white",
-          }}
-        >
-          Sign In with Different Account
-        </Link>
-      </div>
+// Unauthorized Page
+const Unauthorized = () => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100vh",
+      textAlign: "center",
+      padding: "20px",
+    }}
+  >
+    <h1>Unauthorized Access</h1>
+    <p>You don't have permission to access this page.</p>
+    <div style={{ marginTop: "20px" }}>
+      <Link
+        to="/admin"
+        style={{
+          marginRight: "10px",
+          padding: "8px 16px",
+          background: "#f0f0f0",
+          textDecoration: "none",
+          borderRadius: "4px",
+          color: "#333",
+        }}
+      >
+        Go to Dashboard
+      </Link>
+      <Link
+        to="/signin"
+        style={{
+          padding: "8px 16px",
+          background: "#007bff",
+          textDecoration: "none",
+          borderRadius: "4px",
+          color: "white",
+        }}
+      >
+        Sign In with Different Account
+      </Link>
     </div>
-  )
-}
+  </div>
+);
 
+// ProtectedRoute
 const ProtectedRoute = ({ requiredRole }) => {
-  const location = useLocation()
+  const location = useLocation();
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
+  const userRole = user?.role?.toLowerCase();
+  const requiredRoleLower = requiredRole?.toLowerCase();
 
-  // Check if token exists for authentication
-  const isAuthenticated = localStorage.getItem("token") !== null
-
-  // Get the user data from localStorage and extract the role
-  const userData = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null
-  const userRole = userData?.role // Get the role from the user object
-
-  console.log("Protected Route Check:")
-  console.log("- Is authenticated:", isAuthenticated)
-  console.log("- User data:", userData)
-  console.log("- User role:", userRole)
-  console.log("- Required role:", requiredRole)
-
-  // If not authenticated, redirect to sign-in
-  if (!isAuthenticated) {
-    return <Navigate to="/signin" state={{ from: location }} replace />
+  if (!token || !user) {
+    return <Navigate to="/signin" state={{ from: location }} replace />;
   }
-
-  // If a role is required and user doesn't have it, redirect to unauthorized
-  if (requiredRole && userRole !== requiredRole) {
-    console.log("- Role mismatch, redirecting to unauthorized")
-    return <Navigate to="/unauthorized" replace />
+  if (requiredRole && userRole !== requiredRoleLower) {
+    return <Navigate to="/unauthorized" replace />;
   }
+  return <Outlet />;
+};
 
-  // If authenticated and authorized, render the child routes
-  console.log("- Authentication and authorization successful")
-  return <Outlet />
-}
+// Admin Layout
+const AdminLayout = ({ admin, setAdmin }) => {
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobileView);
 
-// Layout component for admin pages - Improved with proper fitting
-const AdminLayout = () => {
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobileView)
-
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 768
-      setIsMobileView(mobile)
-      if (!mobile && !sidebarOpen) {
-        setSidebarOpen(true)
-      }
-    }
+      const mobile = window.innerWidth < 768;
+      setIsMobileView(mobile);
+      if (!mobile && !sidebarOpen) setSidebarOpen(true);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [sidebarOpen]);
 
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [sidebarOpen])
-
-  // Toggle sidebar for mobile view
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
     <div
       style={{
         display: "flex",
         height: "100vh",
+        width: "100%",
         overflow: "hidden",
         backgroundColor: "#f8f9fa",
         position: "relative",
       }}
     >
-      {/* Sidebar with responsive width */}
+      {}
       <div
         style={{
           width: isMobileView ? (sidebarOpen ? "260px" : "0") : "260px",
@@ -142,17 +120,16 @@ const AdminLayout = () => {
           overflow: "hidden",
           boxShadow: "0 0 10px rgba(0,0,0,0.1)",
           zIndex: 1000,
-          backgroundColor: "#1e293b",
           transition: "width 0.3s ease",
-          position: isMobileView ? "absolute" : "relative",
+          position: isMobileView ? "fixed" : "sticky", 
           left: 0,
           top: 0,
+          bottom: 0,
         }}
       >
-        <Sidebar isMobile={isMobileView} />
+        {(sidebarOpen || !isMobileView) && <Sidebar isMobile={isMobileView} />}
       </div>
-
-      {/* Main content area */}
+      {}
       <div
         style={{
           flexGrow: 1,
@@ -160,22 +137,19 @@ const AdminLayout = () => {
           flexDirection: "column",
           overflow: "hidden",
           height: "100vh",
-          width: isMobileView ? "100%" : "calc(100% - 260px)",
-          transition: "width 0.3s ease",
+          width: isMobileView ? "100%" : `calc(100% - ${sidebarOpen ? "260px" : "0px"})`,
+          transition: "width 0.3s ease, margin-left 0.3s ease",
           marginLeft: isMobileView && sidebarOpen ? "260px" : "0",
         }}
       >
-        {/* Navbar fixed at top */}
         <div
           style={{
             flexShrink: 0,
             boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
           }}
         >
-          <Navbar toggleSidebar={toggleSidebar} isMobileView={isMobileView} />
+          <Navbar toggleSidebar={toggleSidebar} isMobileView={isMobileView} admin={admin} />
         </div>
-
-        {/* Content area with scrolling */}
         <div
           style={{
             flexGrow: 1,
@@ -184,11 +158,10 @@ const AdminLayout = () => {
             height: "calc(100vh - 64px)",
           }}
         >
-          <Outlet /> {/* This will render child routes */}
+          <Outlet context={{ admin, setAdmin }} />
         </div>
       </div>
-
-      {/* Overlay for mobile when sidebar is open */}
+      {/* Mobile Overlay */}
       {isMobileView && sidebarOpen && (
         <div
           style={{
@@ -204,10 +177,24 @@ const AdminLayout = () => {
         />
       )}
     </div>
-  )
-}
+  );
+};
 
 function App() {
+  const [admin, setAdmin] = useState(null);
+
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      try {
+        const res = await api.get("/api/admin/profile");
+        setAdmin(res.data);
+      } catch {
+        setAdmin(null);
+      }
+    };
+    fetchAdmin();
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -217,15 +204,14 @@ function App() {
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/" element={<Navigate to="/signin" replace />} />
 
-        {/* Protected User Routes - Modified to redirect directly to admin */}
+        {/* Protected User Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
-          {/* Add other user routes here */}
         </Route>
 
         {/* Protected Admin Routes */}
         <Route element={<ProtectedRoute requiredRole="admin" />}>
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminLayout admin={admin} setAdmin={setAdmin} />}>
             <Route index element={<AdminDashboard />} />
             <Route path="legal-documents" element={<LegalDocuments />} />
             <Route path="tenant-management" element={<TenantManagement />} />
@@ -233,15 +219,15 @@ function App() {
             <Route path="communications" element={<CommunicationPage />} />
             <Route path="complaints" element={<Complaints />} />
             <Route path="notices" element={<NoticesBoard />} />
-            <Route path="pending-dues" element={<PendingsDues /> } />
+            <Route path="pending-dues" element={<PendingsDues />} />
+            <Route path="profile" element={<AdminProfile />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
-
-        {/* Fallback route */}
         <Route path="*" element={<Navigate to="/signin" replace />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

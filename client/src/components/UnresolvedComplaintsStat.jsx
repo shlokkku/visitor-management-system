@@ -8,10 +8,8 @@ const UnresolvedComplaintsStat = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch all complaints as admin
     api.get("/api/complaints")
       .then(res => {
-        // Filter unresolved (status !== 'resolved')
         const unresolved = Array.isArray(res.data)
           ? res.data.filter(c => c.status !== "resolved")
           : [];

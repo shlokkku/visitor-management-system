@@ -29,7 +29,6 @@ const ActivityListContainer = () => {
     loadVisitorLogs();
   }, []);
 
-  // Now we pass loading and error states to the ActivityList component
   return <ActivityList activities={activities} loading={loading} error={error} />;
 };
 

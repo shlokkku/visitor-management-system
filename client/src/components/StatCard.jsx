@@ -2,9 +2,8 @@ import React from "react";
 import { Box, Typography, Paper } from "@mui/material";
 
 const StatCard = ({ title, value, icon }) => {
-  // Professional color scheme
-  const primaryColor = "#2c3e50"; // Dark blue/slate
-  const secondaryColor = "#3498db"; // Bright blue accent
+  const primaryColor = "#2c3e50";
+  const secondaryColor = "#3498db";
   
   return (
     <Paper 

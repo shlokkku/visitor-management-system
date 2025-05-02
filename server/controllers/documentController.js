@@ -2,7 +2,7 @@ const Document = require('../models/documentModel');
 const fs = require('fs');
 const path = require('path');
 
-// Helper: get file extension/type
+
 function getFileType(filename) {
   const ext = filename.split('.').pop().toLowerCase();
   if (['pdf'].includes(ext)) return 'pdf';
@@ -12,7 +12,7 @@ function getFileType(filename) {
   return 'file';
 }
 
-// GET /api/documents?category=resident
+
 exports.getAllDocuments = async (req, res) => {
   try {
     const filter = {};
@@ -25,7 +25,7 @@ exports.getAllDocuments = async (req, res) => {
   }
 };
 
-// POST /api/documents/upload
+
 exports.uploadDocument = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
@@ -61,7 +61,7 @@ exports.uploadDocument = async (req, res) => {
   }
 };
 
-// GET /api/documents/download/:id
+
 exports.downloadDocument = async (req, res) => {
   try {
     const doc = await Document.findById(req.params.id);
@@ -69,7 +69,6 @@ exports.downloadDocument = async (req, res) => {
 
     const filePath = path.resolve(doc.path);
 
-    // Check if the file exists before trying to download
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: 'File not found on server' });
     }
@@ -80,19 +79,18 @@ exports.downloadDocument = async (req, res) => {
   }
 };
 
-// DELETE /api/documents/:id
+
 exports.deleteDocument = async (req, res) => {
   try {
     const doc = await Document.findById(req.params.id);
     if (!doc) return res.status(404).json({ message: 'Document not found' });
 
-    // Remove from filesystem if exists
+   
     try {
       if (fs.existsSync(doc.path)) {
         fs.unlinkSync(doc.path);
       }
     } catch (err) {
-      // Log error but continue to remove DB record
       console.warn('File delete error:', err.message);
     }
     await doc.remove();
