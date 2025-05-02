@@ -19,15 +19,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch stats from the backend
+   
     api.get("/api/admin/stats/overview")
       .then(res => setStats(res.data))
       .catch(() => setStats(null))
       .finally(() => setLoading(false));
   }, []);
 
-  // Example: PendingDues component expects an array, but real data should be fetched from backend
-  // Here it's just placeholder for layout; replace with real API integration for due items list
+  
   const dueItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const displayedDueItems = isMobile ? dueItems.slice(0, 5) : dueItems;
 

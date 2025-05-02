@@ -2,7 +2,7 @@ const VisitorLog = require('../models/VisitorLog.mongo');
 const { getResidentByFlatId } = require('../models/Resident.mysql');
 const mongoose = require('mongoose');
 
-// Get all visitor logs (Admin view)
+
 exports.getVisitorLogs = async (req, res) => {
   try {
     const logs = await VisitorLog.find().sort({ entry_time: -1 }).limit(100);
@@ -13,7 +13,6 @@ exports.getVisitorLogs = async (req, res) => {
   }
 };
 
-// Guard creates a visitor log
 exports.createVisitorLog = async (req, res) => {
   try {
     const { visitor_id, name, contact_info, type, flat_id, purpose } = req.body;
@@ -46,7 +45,6 @@ exports.createVisitorLog = async (req, res) => {
   }
 };
 
-// Resident approves or denies a visitor
 exports.updateVisitorStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -66,10 +64,10 @@ exports.updateVisitorStatus = async (req, res) => {
       return res.status(404).json({ message: 'Visitor log not found.' });
     }
 
-    // Update status
+
     log.status = status;
 
-    // Update entry_time or exit_time based on the status
+
     if (status === 'CheckedIn') {
       log.entry_time = new Date();
     }
@@ -77,7 +75,7 @@ exports.updateVisitorStatus = async (req, res) => {
       log.exit_time = new Date();
     }
 
-    // Add event to the events array
+
     log.events.push({
       action: status.toLowerCase(),
       timestamp: new Date(),

@@ -2,12 +2,12 @@ const parkingModel = require('../models/parkingModel');
 const vehicleModel = require('../models/vehicleModel');
 const db = require('../config/db');
 
-// Resident: View my parking and vehicles, showing spot assignment per vehicle
+
 exports.getMyParking = async (req, res) => {
   try {
     const flat_id = req.user.linked_id;
 
-    // Get all vehicles with assigned spot info (if any)
+   
     const [vehicles] = await db.execute(
       `SELECT v.*, ps.spot_number AS assigned_spot_number, ps.spot_type AS assigned_spot_type
        FROM Vehicles v
@@ -16,7 +16,7 @@ exports.getMyParking = async (req, res) => {
       [flat_id]
     );
 
-    // Get all spots for this resident
+    
     const [spots] = await db.execute(
       `SELECT * FROM ParkingSpots WHERE assigned_flat_id = ?`,
       [flat_id]
@@ -28,7 +28,7 @@ exports.getMyParking = async (req, res) => {
   }
 };
 
-// Resident: Add vehicle & auto-assign primary parking if available (and vacant)
+
 exports.addVehicle = async (req, res) => {
   try {
     const flat_id = req.user.linked_id;
@@ -37,9 +37,9 @@ exports.addVehicle = async (req, res) => {
       flat_id, vehicle_type, vehicle_make, vehicle_model, license_plate, color
     });
 
-    // Only assign primary spot if not already occupied
+
     const primarySpot = await parkingModel.getPrimarySpotByFlat(flat_id);
-    // If primary spot is not assigned, assign it to the new vehicle
+
     if (primarySpot && !primarySpot.is_assigned) {
       await parkingModel.assignSpot(primarySpot.id, vehicleId, flat_id);
       return res.status(201).json({ id: vehicleId, message: "Vehicle added and primary spot assigned." });
@@ -51,7 +51,7 @@ exports.addVehicle = async (req, res) => {
   }
 };
 
-// Resident: List my vehicles (with their assigned spot if any)
+
 exports.getMyVehicles = async (req, res) => {
   try {
     const flat_id = req.user.linked_id;
@@ -68,7 +68,7 @@ exports.getMyVehicles = async (req, res) => {
   }
 };
 
-// Resident: Remove my vehicle (also unassigns parking)
+
 exports.removeVehicle = async (req, res) => {
   try {
     const { vehicle_id } = req.params;
@@ -83,7 +83,7 @@ exports.removeVehicle = async (req, res) => {
   }
 };
 
-// Admin: View all parking assignments (residents, spots, and vehicles)
+
 exports.getAllParking = async (req, res) => {
   try {
     const [rows] = await db.execute(`
@@ -103,7 +103,7 @@ exports.getAllParking = async (req, res) => {
   }
 };
 
-// Admin: List all parking spots (with optional filters)
+
 exports.getAllSpots = async (req, res) => {
   try {
     let sql = `SELECT * FROM ParkingSpots WHERE 1=1`;
@@ -123,7 +123,7 @@ exports.getAllSpots = async (req, res) => {
   }
 };
 
-// Admin: Assign an extra/guest spot to a vehicle
+
 exports.assignSpot = async (req, res) => {
   try {
     const { spot_id, vehicle_id } = req.body;
@@ -137,7 +137,6 @@ exports.assignSpot = async (req, res) => {
   }
 };
 
-// Admin: Unassign a spot
 exports.unassignSpot = async (req, res) => {
   try {
     const { spot_id } = req.body;

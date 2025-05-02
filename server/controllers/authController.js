@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
-// Resident Sign-up
+
 exports.residentSignup = async (req, res) => {
   try {
     const { email, password, full_name, wing, flat_number, role } = req.body;
@@ -24,15 +24,15 @@ exports.residentSignup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Step 1: Insert the user into the Users table with a placeholder linked_id
+   
     const [userResult] = await db.execute(
       'INSERT INTO Users (email, password, user_type, linked_table, linked_id) VALUES (?, ?, ?, ?, ?)',
-      [email, hashedPassword, 'Resident', 'Residents', 0] // Placeholder for linked_id
+      [email, hashedPassword, 'Resident', 'Residents', 0] 
     );
 
     const userId = userResult.insertId;
 
-    // Step 2: Insert the resident into the Residents table
+   
     const [residentResult] = await db.execute(
       'INSERT INTO Residents (user_id, full_name, wing, flat_number, flatId, role) VALUES (?, ?, ?, ?, ?, ?)',
       [userId, full_name, wing, flat_number, flatId, role]
@@ -40,7 +40,7 @@ exports.residentSignup = async (req, res) => {
 
     const residentId = residentResult.insertId;
 
-    // Step 3: Update the linked_id in the Users table
+   
     await db.execute('UPDATE Users SET linked_id = ? WHERE id = ?', [residentId, userId]);
 
     res.status(201).json({
@@ -53,7 +53,7 @@ exports.residentSignup = async (req, res) => {
   }
 };
 
-// Resident Sign-in
+
 exports.residentSignin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -108,7 +108,6 @@ exports.adminSignup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Step 1: Insert user into Users table
     const [userResult] = await db.execute(
       'INSERT INTO Users (email, password, user_type, linked_table, linked_id) VALUES (?, ?, ?, ?, ?)',
       [email, hashedPassword, 'Admin', 'Admin', 0]
@@ -116,7 +115,6 @@ exports.adminSignup = async (req, res) => {
 
     const userId = userResult.insertId;
 
-    // Step 2: Insert admin into Admin table
     const [adminResult] = await db.execute(
       'INSERT INTO Admin (user_id, name, contact_info) VALUES (?, ?, ?)',
       [userId, name, contact_info || null]
@@ -124,7 +122,6 @@ exports.adminSignup = async (req, res) => {
 
     const adminId = adminResult.insertId;
 
-    // Step 3: Update linked_id in Users table
     await db.execute('UPDATE Users SET linked_id = ? WHERE id = ?', [adminId, userId]);
 
     res.status(201).json({
@@ -162,14 +159,14 @@ exports.adminSignin = async (req, res) => {
     const admin = admins[0];
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.user_type.toLowerCase() }, // Convert role to lowercase
+      { id: user.id, email: user.email, role: user.user_type.toLowerCase() }, 
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
     
     res.json({
       message: 'Login successful',
-      admin: { id: admin.id, email: user.email, name: admin.name, role: user.user_type.toLowerCase() }, // Convert role to lowercase
+      admin: { id: admin.id, email: user.email, name: admin.name, role: user.user_type.toLowerCase() }, 
       token,
     });
   } catch (error) {
@@ -194,15 +191,15 @@ exports.guardSignup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Step 1: Insert the user into the Users table with a placeholder linked_id
+ 
     const [userResult] = await db.execute(
       'INSERT INTO Users (email, password, user_type, linked_table, linked_id) VALUES (?, ?, ?, ?, ?)',
-      [email, hashedPassword, 'Guard', 'Guards', 0] // Placeholder for linked_id
+      [email, hashedPassword, 'Guard', 'Guards', 0] 
     );
 
     const userId = userResult.insertId;
 
-    // Step 2: Insert the guard into the Guards table
+
     const [guardResult] = await db.execute(
       'INSERT INTO Guards (user_id, name, contact_info, shift_time) VALUES (?, ?, ?, ?)',
       [userId, name, contact_info, shift_time || null]
@@ -210,7 +207,7 @@ exports.guardSignup = async (req, res) => {
 
     const guardId = guardResult.insertId;
 
-    // Step 3: Update the linked_id in the Users table
+  
     await db.execute('UPDATE Users SET linked_id = ? WHERE id = ?', [guardId, userId]);
 
     res.status(201).json({
@@ -223,7 +220,7 @@ exports.guardSignup = async (req, res) => {
   }
 };
 
-// Guard Sign-in
+
 exports.guardSignin = async (req, res) => {
   try {
     const { email, password } = req.body;

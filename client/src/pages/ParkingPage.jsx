@@ -32,7 +32,6 @@ const SECONDARY_COLOR = "#3498db";
 const LIGHT_BG = "rgba(52, 152, 219, 0.08)";
 
 const ParkingPage = () => {
-  // State for parking data and pagination
   const [parkingData, setParkingData] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -50,7 +49,6 @@ const ParkingPage = () => {
 
   useEffect(() => {
     fetchParking();
-    // eslint-disable-next-line
   }, []);
 
   const fetchParking = async () => {
@@ -338,7 +336,7 @@ const ParkingPage = () => {
         )}
       </Paper>
 
-      {/* Detailed View Dialog */}
+      {}
       <Dialog 
         open={!!selectedParking} 
         onClose={handleCloseDetails}
@@ -385,7 +383,7 @@ const ParkingPage = () => {
                 />
               ))}
 
-              {/* Vehicles Table */}
+              {}
               <Box sx={{ mt: 2 }}>
                 <Typography sx={{ color: PRIMARY_COLOR, fontWeight: 'bold', mb: 1 }}>Vehicles</Typography>
                 <Table size="small">
@@ -481,7 +479,7 @@ const ParkingPage = () => {
         )}
       </Dialog>
 
-      {/* Assign Spot Dialog */}
+      {}
       <Dialog
         open={assignDialogOpen}
         onClose={() => setAssignDialogOpen(false)}
@@ -554,7 +552,7 @@ const ParkingPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Feedback Snackbar */}
+      {}
       <Snackbar 
         open={snackbar.open}
         autoHideDuration={5000}

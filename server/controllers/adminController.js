@@ -1,9 +1,8 @@
 const db = require('../config/db');
 
-// Get admin profile (combine Users and Admin)
+
 exports.getProfile = async (req, res) => {
   try {
-    // join Users and Admin for full profile
     const [rows] = await db.execute(
       `SELECT 
          u.id AS user_id, u.email, u.user_type, u.contact_info AS user_contact, 
@@ -21,12 +20,12 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// Update admin profile (name, contact_info)
+
 exports.updateProfile = async (req, res) => {
   try {
     const { name, contact_info } = req.body;
 
-    // Validate name (required, not empty)
+
     if (typeof name === "undefined" || name.trim() === "") {
       return res.status(400).json({ message: "Name is required and cannot be empty." });
     }
@@ -34,11 +33,11 @@ exports.updateProfile = async (req, res) => {
     const updates = [];
     const params = [];
 
-    // Always update name (required)
+ 
     updates.push("name = ?");
     params.push(name);
 
-    // Optionally update contact_info
+
     if (typeof contact_info !== "undefined") {
       updates.push("contact_info = ?");
       params.push(contact_info);
@@ -51,7 +50,7 @@ exports.updateProfile = async (req, res) => {
       params
     );
 
-    // Optionally update Users.contact_info if contact_info is sent
+
     if (typeof contact_info !== "undefined") {
       await db.execute(
         `UPDATE Users SET contact_info = ? WHERE id = ?`,
@@ -59,7 +58,6 @@ exports.updateProfile = async (req, res) => {
       );
     }
 
-    // Return updated profile
     const [rows] = await db.execute(
       `SELECT 
          u.id AS user_id, u.email, u.user_type, u.contact_info AS user_contact, 
@@ -76,7 +74,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Get admin settings (from Users table)
+
 exports.getSettings = async (req, res) => {
   try {
     const [rows] = await db.execute(
@@ -91,11 +89,10 @@ exports.getSettings = async (req, res) => {
   }
 };
 
-// Update admin settings (in Users table)
+
 exports.updateSettings = async (req, res) => {
   try {
     const { notifications, darkMode, twoFactor } = req.body;
-    // Only update fields that are present in body
     const updates = [];
     const params = [];
     if (typeof notifications === 'boolean') {
@@ -118,7 +115,7 @@ exports.updateSettings = async (req, res) => {
       `UPDATE Users SET ${updates.join(', ')} WHERE id = ? AND user_type = 'Admin'`,
       params
     );
-    // Return updated settings
+
     const [rows] = await db.execute(
       `SELECT notifications, dark_mode AS darkMode, two_factor AS twoFactor FROM Users WHERE id = ?`,
       [req.user.id]

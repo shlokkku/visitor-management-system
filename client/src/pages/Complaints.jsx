@@ -13,7 +13,7 @@ import AttachmentIcon from '@mui/icons-material/Attachment';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { api } from '../services/authService'; // <--- use your axios instance
+import { api } from '../services/authService'; 
 
 const THEME = {
   primary: "#1a73e8",
@@ -93,7 +93,7 @@ const ComplaintsPage = () => {
   const [categories, setCategories] = useState(['All Categories']);
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
 
-  // Fetch all complaints for admin
+  
   useEffect(() => {
     setLoading(true);
     api.get('/api/complaints')
@@ -112,7 +112,7 @@ const ComplaintsPage = () => {
       });
   }, []);
 
-  // Filtering, searching, sorting
+
   useEffect(() => {
     let result = [...complaints];
     if (statusMap[currentTab] !== 'all') {
@@ -144,7 +144,7 @@ const ComplaintsPage = () => {
     setFilteredComplaints(result);
   }, [searchQuery, currentTab, selectedSort, selectedCategory, complaints]);
 
-  // UI Handlers
+ 
   const handleSearchChange = (event) => setSearchQuery(event.target.value);
   const handleTabChange = (event, newValue) => setCurrentTab(newValue);
   const handleSortClick = (event) => setSortAnchorEl(event.currentTarget);
@@ -156,7 +156,7 @@ const ComplaintsPage = () => {
   const handleComplaintClick = (complaint) => { fetchComplaintDetails(complaint._id); };
   const handleCloseDetailDialog = () => setDetailDialogOpen(false);
 
-  // Fetch single complaint details (with comments, attachments)
+ 
   function fetchComplaintDetails(id) {
     api.get(`/api/complaints/${id}`)
       .then(res => {
@@ -165,7 +165,7 @@ const ComplaintsPage = () => {
       });
   }
 
-  // Update status (admin endpoint)
+  
   function handleStatusChange(complaintId, newStatus) {
     api.put(`/api/complaints/${complaintId}/status`, { status: newStatus })
       .then(res => {
@@ -176,7 +176,7 @@ const ComplaintsPage = () => {
       });
   }
 
-  // Add comment (admin endpoint)
+ 
   function handleAddComment() {
     if (!commentText.trim() || !selectedComplaint) return;
     api.post(`/api/complaints/${selectedComplaint._id}/comment`, { text: commentText })
@@ -195,7 +195,7 @@ const ComplaintsPage = () => {
       });
   }
 
-  // Map backend fields to frontend display
+ 
   function getResidentAvatar(complaint) {
     if (complaint.residentName) return complaint.residentName[0];
     if (complaint.wing) return complaint.wing[0];
@@ -210,7 +210,7 @@ const ComplaintsPage = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: THEME.backgroundGray, overflow: 'hidden' }}>
-      {/* Header */}
+      {}
       <Box sx={{ p: 3, bgcolor: 'white', borderBottom: `1px solid ${THEME.lightGray}` }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" fontWeight={500} color={THEME.text}>Complaints Management</Typography>
@@ -268,7 +268,7 @@ const ComplaintsPage = () => {
         </Box>
       </Box>
 
-      {/* Main Content */}
+      {}
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -366,7 +366,7 @@ const ComplaintsPage = () => {
         )}
       </Box>
 
-      {/* Detail Dialog */}
+      {}
       {selectedComplaint && (
         <Dialog open={detailDialogOpen} onClose={handleCloseDetailDialog} maxWidth="md" fullWidth>
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${THEME.lightGray}`, pb: 2 }}>
@@ -507,7 +507,7 @@ const ComplaintsPage = () => {
         </Dialog>
       )}
 
-      {/* Stats Footer */}
+      {}
       <Box sx={{
         p: 2, bgcolor: 'white', borderTop: `1px solid ${THEME.lightGray}`,
         display: 'flex', justifyContent: 'space-between'

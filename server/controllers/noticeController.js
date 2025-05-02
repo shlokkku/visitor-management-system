@@ -7,7 +7,7 @@ const db = require('../config/db');
 exports.addNotice = async (req, res) => {
   try {
     const { title, content, expiration_date } = req.body;
-    const posted_by = req.user.id; // Extract the admin ID from the logged-in user
+    const posted_by = req.user.id; 
 
     if (!title || !content) {
       return res.status(400).json({ message: 'Title and content are required.' });
@@ -60,7 +60,7 @@ exports.deleteNotice = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Ensure the notice exists
+
     const [notices] = await db.execute('SELECT * FROM Notices WHERE id = ?', [id]);
     if (notices.length === 0) {
       return res.status(404).json({ message: 'Notice not found' });

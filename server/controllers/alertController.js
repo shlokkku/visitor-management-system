@@ -1,11 +1,10 @@
 const Alert = require('../models/Alert');
 const db = require('../config/db');
 
-// Resident creates alert
+
 exports.createAlert = async (req, res) => {
   try {
     const { type, message, unit } = req.body;
-    // Find resident id from MySQL
     const [residents] = await db.execute('SELECT id FROM Residents WHERE user_id = ?', [req.user.id]);
     const resident = residents[0];
     if (!resident) return res.status(400).json({ message: 'Resident profile not found' });
@@ -17,7 +16,6 @@ exports.createAlert = async (req, res) => {
       resident_id: resident.id
     });
 
-    // Real-time: Emit to admins and guards
     const io = req.app.get('io');
     if (io) {
       io.to('admins').emit('new-alert', alert);
@@ -31,7 +29,7 @@ exports.createAlert = async (req, res) => {
   }
 };
 
-// Admin/Guard fetch alerts
+
 exports.getAlerts = async (req, res) => {
   try {
     const { status } = req.query;
@@ -42,7 +40,7 @@ exports.getAlerts = async (req, res) => {
   }
 };
 
-// Admin/Guard resolve alert
+
 exports.resolveAlert = async (req, res) => {
   try {
     const { id } = req.params;

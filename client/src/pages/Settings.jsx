@@ -12,8 +12,7 @@ import {
   Snackbar,
   CircularProgress,
 } from "@mui/material";
-import { api } from "../services/authService"; // Adjust import if needed
-
+import { api } from "../services/authService"; 
 const defaultSettings = {
   notifications: true,
   darkMode: false,
@@ -26,7 +25,7 @@ const Settings = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch current settings from backend on mount
+ 
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
@@ -107,7 +106,7 @@ const Settings = () => {
                   checked={settings.twoFactor}
                   onChange={handleToggle("twoFactor")}
                   color="primary"
-                  disabled // Hide or disable if not implemented
+                  disabled 
                 />
               }
               label="Enable Two-Factor Authentication"

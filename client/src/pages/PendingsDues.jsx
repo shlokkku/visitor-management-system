@@ -15,7 +15,7 @@ const PendingsDues = () => {
   const [filteredDues, setFilteredDues] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Residents for dropdown
+  
   const [residents, setResidents] = useState([]);
   const [tenantId, setTenantId] = useState("");
   const [amount, setAmount] = useState("");
@@ -30,7 +30,7 @@ const PendingsDues = () => {
     fetchResidents();
   }, []);
 
-  // Fetch dues from backend
+  
   const fetchDues = async () => {
     setLoading(true);
     try {
@@ -45,18 +45,18 @@ const PendingsDues = () => {
     setLoading(false);
   };
 
-  // Fetch residents for dropdown
+  
   const fetchResidents = async () => {
     try {
       const res = await api.get("/api/residents");
-      // Use res.data.data for array
+      
       setResidents(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (e) {
       setResidents([]);
     }
   };
 
-  // Filter dues when search text changes
+ 
   useEffect(() => {
     if (!search.trim()) {
       setFilteredDues(dues);
@@ -74,11 +74,10 @@ const PendingsDues = () => {
     }
   }, [search, dues]);
 
-  // Open dialog for add or edit
+
   const handleOpenDialog = (due = null) => {
     if (due) {
       setEditing(due.id);
-      // Find tenantId from residents by matching name/wing/flat (id is unique)
       setTenantId(due.id);
       setAmount(due.amount || "");
       setDueDate(
@@ -95,7 +94,7 @@ const PendingsDues = () => {
     setOpenDialog(true);
   };
 
-  // Close dialog
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setTenantId("");
@@ -104,7 +103,7 @@ const PendingsDues = () => {
     setEditing(null);
   };
 
-  // Save due (add or edit)
+
   const handleSave = async () => {
     try {
       if (editing) {
@@ -128,7 +127,7 @@ const PendingsDues = () => {
     }
   };
 
-  // Delete due
+ 
   const handleDelete = async (due) => {
     if (!window.confirm("Delete this due?")) return;
     try {
@@ -140,7 +139,7 @@ const PendingsDues = () => {
     }
   };
 
-  // Utility to build a unique key for each due (avoid duplicate key warning)
+
   const getDueKey = (due, idx) => {
     return `${due.id || ''}-${due.wing || ''}-${due.flat_number || ''}-${idx}`;
   };

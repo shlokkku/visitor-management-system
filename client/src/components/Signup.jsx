@@ -1,4 +1,4 @@
-/* import React, { useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import Button from './Button';
 import { signup } from '../services/authService';
@@ -18,7 +18,7 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const value = e.target.value.trim();
+    const value = e.target.value.trim(); // Trim whitespace
     setFormData({
       ...formData,
       [e.target.name]: value,
@@ -261,4 +261,4 @@ const StyledWrapper = styled.div`
   }
 `;
 
-export default Signup; */
+export default Signup;

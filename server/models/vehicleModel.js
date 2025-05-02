@@ -27,13 +27,13 @@ async function getVehicleById(id) {
   return rows[0];
 }
 
-// Remove a vehicle (optional logic: unassign parking spot)
+
 async function removeVehicle(id) {
-  // Unassign the spot first
+ 
   await db.execute(
     'UPDATE ParkingSpots SET is_assigned = FALSE, assigned_vehicle_id = NULL WHERE assigned_vehicle_id = ?', [id]
   );
-  // Remove the vehicle
+  
   await db.execute('DELETE FROM Vehicles WHERE id = ?', [id]);
 }
 

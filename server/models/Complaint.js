@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const CommentSchema = new mongoose.Schema({
   text: { type: String, required: true },
-  authorUserId: { type: Number, required: true },      // SQL users.id
+  authorUserId: { type: Number, required: true },     
   authorUserType: { type: String, enum: ['Admin', 'Resident'], required: true },
   authorName: { type: String, required: true },
   authorRole: { type: String }, // Owner/Tenant/Family Member for residents, null for Admin
@@ -29,7 +29,7 @@ const ComplaintSchema = new mongoose.Schema({
   flat_number: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  assignedToUserId: { type: Number },                        // SQL users.id for Admin
+  assignedToUserId: { type: Number },                      
   assignedToName: { type: String },
   comments: [CommentSchema],
   attachments: [AttachmentSchema]

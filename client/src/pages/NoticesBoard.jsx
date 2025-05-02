@@ -37,7 +37,7 @@ const NoticesBoard = () => {
     fetchNotices();
   }, []);
 
-  // Search/filter handler
+ 
   useEffect(() => {
     if (!search.trim()) {
       setFilteredNotices(notices);

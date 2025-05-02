@@ -41,7 +41,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FolderIcon from "@mui/icons-material/Folder";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import { api } from "../services/authService"; // <-- Use your axios instance with interceptors
+import { api } from "../services/authService"; 
 
 const fileTypeIcons = {
   pdf: <ArticleIcon sx={{ color: "#e91e63" }} />,
@@ -52,7 +52,7 @@ const fileTypeIcons = {
   img: <ArticleIcon sx={{ color: "#9c27b0" }} />,
 };
 
-// Document categories
+
 const categories = [
   { id: "rental", name: "Rental Agreements", icon: <FolderIcon sx={{ color: "#1976d2" }} /> },
   { id: "works", name: "Help/Works Documents", icon: <FolderIcon sx={{ color: "#388e3c" }} /> },
@@ -86,7 +86,7 @@ const LegalDocuments = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch all documents from backend
+
   const fetchDocuments = async () => {
     setLoading(true);
     try {
@@ -102,7 +102,7 @@ const LegalDocuments = () => {
     fetchDocuments();
   }, []);
 
-  // Upload document to backend
+  
   const handleUpload = async () => {
     if (!fileToUpload || !uploadCategory) {
       setMessage("Please select a file and category.");
@@ -139,7 +139,7 @@ const LegalDocuments = () => {
     }
   };
 
-  // Download file
+
   const handleDownload = async (doc) => {
     try {
       const res = await api.get(`/api/documents/download/${doc._id}`, {
@@ -158,7 +158,7 @@ const LegalDocuments = () => {
     }
   };
 
-  // Delete file
+
   const handleDelete = async (doc) => {
     if (!window.confirm(`Delete "${doc.originalName || doc.name}"?`)) return;
     try {
@@ -170,7 +170,7 @@ const LegalDocuments = () => {
     }
   };
 
-  // Filtering and grouping
+ 
   const filteredDocuments = searchTerm
     ? documents.filter(
         (doc) =>
@@ -181,11 +181,11 @@ const LegalDocuments = () => {
       )
     : documents;
 
-  // Group by category
+
   const getCategoryDocs = (catId) =>
     filteredDocuments.filter((doc) => doc.category === catId);
 
-  // Table selection logic
+  
   const isSelected = (id) => selectedFiles.indexOf(id) !== -1;
 
   const handleSelectFile = (id) => {
@@ -212,7 +212,7 @@ const LegalDocuments = () => {
     catDocs.forEach(handleDownload);
   };
 
-  // Context menu
+ 
   const handleContextMenu = (e, file) => {
     e.preventDefault();
     e.stopPropagation();
@@ -225,13 +225,13 @@ const LegalDocuments = () => {
     setSelectedFile(null);
   };
 
-  // Upload dialog logic
+
   const handleOpenUploadDialog = (catId) => {
     setUploadCategory(catId || "rental");
     setOpenUploadDialog(true);
   };
 
-  // Category stats
+ 
   const categoryStats = {};
   categories.forEach((cat) => {
     const docs = getCategoryDocs(cat.id);
@@ -316,7 +316,7 @@ const LegalDocuments = () => {
         </Box>
       </Box>
 
-      {/* Accordions for categories */}
+      {}
       {categories.map((cat) => {
         const catDocs = getCategoryDocs(cat.id);
         const hasFiles = catDocs.length > 0;
@@ -495,7 +495,7 @@ const LegalDocuments = () => {
         );
       })}
 
-      {/* File context menu */}
+      {}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -523,7 +523,7 @@ const LegalDocuments = () => {
         </MenuItem>
       </Menu>
 
-      {/* Upload Dialog */}
+      {}
       <Dialog open={openUploadDialog} onClose={() => setOpenUploadDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ bgcolor: "#f8f9fa", color: "#2c3e50" }}>Upload Document</DialogTitle>
         <DialogContent>
@@ -639,7 +639,7 @@ const LegalDocuments = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Notifications */}
+      {}
       {message && (
         <Paper
           sx={{

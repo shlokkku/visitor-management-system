@@ -1,11 +1,11 @@
 const db = require('../config/db');
 
-// Register a device (save or update device token for user)
+
 exports.registerDevice = async (req, res) => {
   const userId = req.user.id;
   const { device_token, device_type } = req.body;
   try {
-    // Upsert (update if exists, else insert)
+   
     await db.execute(
       `INSERT INTO UserDevices (user_id, device_token, device_type)
        VALUES (?, ?, ?)

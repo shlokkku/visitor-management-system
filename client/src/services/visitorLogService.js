@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api/visitorlogs';
 
-// Create axios instance
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -16,15 +16,15 @@ const api = axios.create({
  */
 export const fetchVisitorLogs = async () => {
   try {
-    const token = localStorage.getItem('token'); // Get token from localStorage
+    const token = localStorage.getItem('token'); 
     if (!token) {
       throw new Error('Authentication required. Please log in.');
     }
 
     const response = await api.get('/', {
-      headers: { Authorization: `Bearer ${token}` }, // Include token
+      headers: { Authorization: `Bearer ${token}` }, 
     });
-    return response.data; // Return the visitor logs
+    return response.data;
   } catch (error) {
     console.error('Error fetching visitor logs:', error);
     throw new Error(
@@ -40,15 +40,15 @@ export const fetchVisitorLogs = async () => {
  */
 export const fetchVisitorLogById = async (id) => {
   try {
-    const token = localStorage.getItem('token'); // Get token from localStorage
+    const token = localStorage.getItem('token'); 
     if (!token) {
       throw new Error('Authentication required. Please log in.');
     }
 
     const response = await api.get(`/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }, // Include token
+      headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data; // Return the visitor log
+    return response.data;
   } catch (error) {
     console.error(`Error fetching visitor log with ID: ${id}`, error);
     throw new Error(
@@ -65,7 +65,7 @@ export const fetchVisitorLogById = async (id) => {
  */
 export const updateVisitorLogStatus = async (id, updateData) => {
   try {
-    const token = localStorage.getItem('token'); // Get token from localStorage
+    const token = localStorage.getItem('token'); 
     if (!token) {
       throw new Error('Authentication required. Please log in.');
     }
@@ -73,10 +73,10 @@ export const updateVisitorLogStatus = async (id, updateData) => {
     const response = await api.put(`/${id}/status`, updateData, {
       headers: { 
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json', // Specify JSON content type
+        'Content-Type': 'application/json', 
       },
     });
-    return response.data; // Return the updated visitor log
+    return response.data; 
   } catch (error) {
     console.error(`Error updating visitor log status with ID: ${id}`, error);
     throw new Error(
