@@ -1,25 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Paper, CircularProgress } from "@mui/material";
-import { api } from "../services/authService"; // Import the Axios instance with interceptors
+import { api } from "../services/authService"; 
 
 const NoticeBoard = () => {
-  const [notices, setNotices] = useState([]); // Initialize as an empty array
+  const [notices, setNotices] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Professional color scheme
-  const primaryColor = "#2c3e50"; // Dark blue/slate
-  const secondaryColor = "#3498db"; // Bright blue accent
-  const lightBg = "rgba(52, 152, 219, 0.08)"; // Very light blue background
-
-  // Fetch notices from the backend
+ 
+  const primaryColor = "#2c3e50"; 
+  const secondaryColor = "#3498db"; 
+  const lightBg = "rgba(52, 152, 219, 0.08)"; 
+  
   useEffect(() => {
     const fetchNotices = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await api.get("/api/notices"); // Use the Axios instance
-        setNotices(response.data || []); // Handle response as an array directly
+        const response = await api.get("/api/notices"); 
+        setNotices(response.data || []); 
       } catch (err) {
         console.error("Error fetching notices:", err);
         setError("Failed to load notices. Please try again.");
@@ -124,7 +123,7 @@ const NoticeBoard = () => {
               <Typography color="black" variant="body2" sx={{
                 fontSize: { xs: "0.875rem", sm: "1rem" }
               }}>
-                {item.title} {/* Render the title of the notice */}
+                {item.title} {}
               </Typography>
             </Box>
           ))

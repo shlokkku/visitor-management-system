@@ -3,6 +3,8 @@ export { default as LegalDocuments } from './LegalDocuments';
 export { default as TenantManagement } from './TenantManagement';
 export { default as ParkingPage } from './ParkingPage';
 export { default as CommunicationPage } from './CommunicationPage';
-export {default as Complaints} from './Complaints'
-export {default as NoticesBoard} from './NoticesBoard'
-export {default as PendingsDues} from './PendingsDues'
+export {default as Complaints} from './Complaints';
+export {default as NoticesBoard} from './NoticesBoard';
+export {default as PendingsDues} from './PendingsDues';
+export {default as Settings} from './Settings';
+export {default as AdminProfile} from './AdminProfile';

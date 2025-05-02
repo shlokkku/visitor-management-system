@@ -140,6 +140,11 @@ const PendingsDues = () => {
     }
   };
 
+  // Utility to build a unique key for each due (avoid duplicate key warning)
+  const getDueKey = (due, idx) => {
+    return `${due.id || ''}-${due.wing || ''}-${due.flat_number || ''}-${idx}`;
+  };
+
   return (
     <Box sx={{ maxWidth: 1100, mx: "auto", mt: 5, p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -192,8 +197,8 @@ const PendingsDues = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredDues.map((due) => (
-                  <TableRow key={due.id}>
+                filteredDues.map((due, idx) => (
+                  <TableRow key={getDueKey(due, idx)}>
                     <TableCell>
                       {due.wing && due.flat_number
                         ? `${due.wing}-${due.flat_number}`

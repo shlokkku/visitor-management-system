@@ -12,7 +12,12 @@ const residentRoutes = require('./routes/residents');
 const complaintsRoutes = require('./routes/complaints');
 const parkingRoutes = require('./routes/parking');
 const documentRoutes = require('./routes/documents');
-const alertRoutes = require('./routes/alert'); // <-- add this line
+const alertRoutes = require('./routes/alert');
+const adminRoutes = require('./routes/admin');
+const notificationsRoutes = require('./routes/notifications'); // <-- NEW
+const devicesRoutes = require('./routes/devices'); // <-- NEW
+const adminStatsRoutes = require('./routes/adminStats');
+
 require('dotenv').config();
 
 // --------- ADD THIS BLOCK AT THE VERY TOP (after require statements) ---------
@@ -73,7 +78,13 @@ app.use('/api/complaints', complaintsRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/parking', parkingRoutes);
 app.use('/api/documents', documentRoutes);
-app.use('/api/alerts', alertRoutes); // <-- add this line
+app.use('/api/alerts', alertRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin/stats', adminStatsRoutes);
+
+app.use('/api/notifications', notificationsRoutes); // <-- NEW
+app.use('/api/devices', devicesRoutes); // <-- NEW
+
 app.get('/', (req, res) => res.send('Society Parking API'));
 
 // Handle unhandled routes
@@ -91,10 +102,17 @@ app.use((err, req, res, next) => {
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
-  // After login, client should send their role: socket.emit('join-role', 'Admin'/'Guard')
+  // After login, client should send their userId to join their personal room
+  socket.on('join-user', (userId) => {
+    socket.join(`user_${userId}`);
+    console.log(`Socket ${socket.id} joined user room: user_${userId}`);
+  });
+
+  // Optionally, join by role for admin/guard/broadcast
   socket.on('join-role', (role) => {
     if (role === 'Admin') socket.join('admins');
     if (role === 'Guard') socket.join('guards');
+    if (role === 'Resident') socket.join('residents');
     console.log(`Socket ${socket.id} joined role room: ${role}`);
   });
 

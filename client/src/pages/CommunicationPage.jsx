@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+/*import React, { useState, useRef, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
@@ -17,7 +17,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 
-// Theme Colors - refined to match the image
+
 const THEME = {
   primary: "#1a73e8",
   secondary: "#f5f5f5",
@@ -32,7 +32,7 @@ const THEME = {
   onlineGreen: "#4caf50"
 };
 
-// Mock Data
+
 const MOCK_THREADS = [
   {
     id: 'thread1',
@@ -309,7 +309,7 @@ const CommunicationPage = () => {
       bgcolor: 'white',
       overflow: 'hidden'
     }}>
-      {/* Left Panel - Conversations List - adjusted to match image */}
+      {/* Left Panel - Conversations List - adjusted to match image }
       <Box sx={{ 
         width: 405,
         borderRight: `1px solid ${THEME.lightGray}`,
@@ -318,7 +318,7 @@ const CommunicationPage = () => {
         height: '100%',
         backgroundColor: 'white'
       }}>
-        {/* Header */}
+        {}
         <Box sx={{ 
           p: 2.5,
           borderBottom: `1px solid ${THEME.lightGray}`,
@@ -334,7 +334,7 @@ const CommunicationPage = () => {
           </IconButton>
         </Box>
 
-        {/* Search Bar */}
+        {}
         <Box sx={{ p: 2 }}>
           <TextField
             fullWidth
@@ -359,7 +359,7 @@ const CommunicationPage = () => {
           />
         </Box>
 
-        {/* Threads List */}
+        {/}
         <Box sx={{ overflow: 'auto', flexGrow: 1 }}>
           {sortedThreads.map((thread) => (
             <Box 
@@ -452,7 +452,7 @@ const CommunicationPage = () => {
         </Box>
       </Box>
 
-      {/* Right Panel - Chat Area */}
+      {}
       <Box sx={{ 
         flexGrow: 1, 
         display: 'flex', 
@@ -462,7 +462,7 @@ const CommunicationPage = () => {
       }}>
         {selectedThread && (
           <>
-            {/* Chat Header */}
+            {}
             <Box sx={{ 
               px: 3,
               py: 2,
@@ -519,7 +519,7 @@ const CommunicationPage = () => {
               </Box>
             </Box>
 
-            {/* Messages Area */}
+            {}
             <Box sx={{ 
               flexGrow: 1, 
               overflow: 'auto', 
@@ -591,7 +591,7 @@ const CommunicationPage = () => {
               <div ref={messagesEndRef} />
             </Box>
 
-            {/* Message Input Area */}
+            {}
             <Box sx={{ 
               p: 2, 
               bgcolor: 'white',
@@ -631,3 +631,4 @@ const CommunicationPage = () => {
 };
 
 export default CommunicationPage;
+*/

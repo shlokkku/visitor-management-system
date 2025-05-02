@@ -7,6 +7,8 @@ import Signup from "../components/Signup";
 import SignIn from "../components/SignIn";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import Settings from "../pages/Settings";
+import AdminProfile from "../pages/AdminProfile";
 import {
   Dashboard as AdminDashboard,
   LegalDocuments,
@@ -17,6 +19,7 @@ import {
   NoticesBoard,
   PendingsDues
 } from "../pages";
+import { api } from "../services/authService";
 
 // Unauthorized Page
 const Unauthorized = () => (
@@ -81,7 +84,7 @@ const ProtectedRoute = ({ requiredRole }) => {
 };
 
 // Admin Layout
-const AdminLayout = () => {
+const AdminLayout = ({ admin, setAdmin }) => {
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const [sidebarOpen, setSidebarOpen] = useState(!isMobileView);
 
@@ -102,12 +105,13 @@ const AdminLayout = () => {
       style={{
         display: "flex",
         height: "100vh",
+        width: "100%",
         overflow: "hidden",
         backgroundColor: "#f8f9fa",
         position: "relative",
       }}
     >
-      {/* Sidebar */}
+      {}
       <div
         style={{
           width: isMobileView ? (sidebarOpen ? "260px" : "0") : "260px",
@@ -116,16 +120,16 @@ const AdminLayout = () => {
           overflow: "hidden",
           boxShadow: "0 0 10px rgba(0,0,0,0.1)",
           zIndex: 1000,
-          backgroundColor: "#1e293b",
           transition: "width 0.3s ease",
-          position: isMobileView ? "absolute" : "relative",
+          position: isMobileView ? "fixed" : "sticky", 
           left: 0,
           top: 0,
+          bottom: 0,
         }}
       >
-        <Sidebar isMobile={isMobileView} />
+        {(sidebarOpen || !isMobileView) && <Sidebar isMobile={isMobileView} />}
       </div>
-      {/* Main Content */}
+      {}
       <div
         style={{
           flexGrow: 1,
@@ -133,8 +137,8 @@ const AdminLayout = () => {
           flexDirection: "column",
           overflow: "hidden",
           height: "100vh",
-          width: isMobileView ? "100%" : "calc(100% - 260px)",
-          transition: "width 0.3s ease",
+          width: isMobileView ? "100%" : `calc(100% - ${sidebarOpen ? "260px" : "0px"})`,
+          transition: "width 0.3s ease, margin-left 0.3s ease",
           marginLeft: isMobileView && sidebarOpen ? "260px" : "0",
         }}
       >
@@ -144,7 +148,7 @@ const AdminLayout = () => {
             boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
           }}
         >
-          <Navbar toggleSidebar={toggleSidebar} isMobileView={isMobileView} />
+          <Navbar toggleSidebar={toggleSidebar} isMobileView={isMobileView} admin={admin} />
         </div>
         <div
           style={{
@@ -154,7 +158,7 @@ const AdminLayout = () => {
             height: "calc(100vh - 64px)",
           }}
         >
-          <Outlet />
+          <Outlet context={{ admin, setAdmin }} />
         </div>
       </div>
       {/* Mobile Overlay */}
@@ -177,6 +181,20 @@ const AdminLayout = () => {
 };
 
 function App() {
+  const [admin, setAdmin] = useState(null);
+
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      try {
+        const res = await api.get("/api/admin/profile");
+        setAdmin(res.data);
+      } catch {
+        setAdmin(null);
+      }
+    };
+    fetchAdmin();
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -193,7 +211,7 @@ function App() {
 
         {/* Protected Admin Routes */}
         <Route element={<ProtectedRoute requiredRole="admin" />}>
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminLayout admin={admin} setAdmin={setAdmin} />}>
             <Route index element={<AdminDashboard />} />
             <Route path="legal-documents" element={<LegalDocuments />} />
             <Route path="tenant-management" element={<TenantManagement />} />
@@ -202,10 +220,10 @@ function App() {
             <Route path="complaints" element={<Complaints />} />
             <Route path="notices" element={<NoticesBoard />} />
             <Route path="pending-dues" element={<PendingsDues />} />
+            <Route path="profile" element={<AdminProfile />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
-
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/signin" replace />} />
       </Routes>
     </Router>

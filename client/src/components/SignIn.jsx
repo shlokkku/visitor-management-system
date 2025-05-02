@@ -12,7 +12,7 @@ const SignIn = () => {
   const navigate = useNavigate();
 
   const loginSuccess = (data) => {
-    // Store the token and user data if returned from the backend
+    
     if (data.token) {
       localStorage.setItem('token', data.token);
     }
@@ -21,7 +21,7 @@ const SignIn = () => {
     }
     setError('');
     setTimeout(() => {
-      navigate('/admin'); // Redirect to the admin dashboard
+      navigate('/admin'); 
     }, 2000);
   };
 

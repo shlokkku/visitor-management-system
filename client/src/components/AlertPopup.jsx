@@ -3,7 +3,7 @@ import { Snackbar, Alert, Slide, Typography, Box, IconButton } from "@mui/materi
 import CloseIcon from "@mui/icons-material/Close";
 import io from "socket.io-client";
 
-// Get your backend URL from env or config
+
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 function SlideTransition(props) {
   return <Slide {...props} direction="down" />;
@@ -20,9 +20,9 @@ const AlertPopup = () => {
   const [open, setOpen] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  // Get user role from localStorage or context (assuming you store on login)
+
   const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user")) : null;
-  const userRole = user?.user_type || "Admin"; // fallback to Admin
+  const userRole = user?.user_type || "Admin"; 
 
   useEffect(() => {
     if (!userRole) return;
@@ -37,8 +37,6 @@ const AlertPopup = () => {
     s.on("new-alert", (alertData) => {
       setAlert(alertData);
       setOpen(true);
-      // Optional: Play a sound
-      // new Audio("/alert.mp3").play();
     });
 
     s.on("alert-resolved", ({ id }) => {
@@ -46,7 +44,6 @@ const AlertPopup = () => {
     });
 
     return () => s.disconnect();
-    // eslint-disable-next-line
   }, [userRole]);
 
   const handleClose = useCallback((event, reason) => {

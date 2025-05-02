@@ -25,7 +25,7 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { api } from '../services/authService'; // <-- Use your auth service here
+import { api } from '../services/authService';
 
 const PRIMARY_COLOR = "#2c3e50";
 const SECONDARY_COLOR = "#3498db";
@@ -37,14 +37,10 @@ const ParkingPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Detailed view dialog
   const [selectedParking, setSelectedParking] = useState(null);
-
-  // Loading and error snackbar
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Spot assignment dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [availableSpots, setAvailableSpots] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -52,7 +48,6 @@ const ParkingPage = () => {
   const [spotTypeFilter, setSpotTypeFilter] = useState('all');
   const [availableOnly, setAvailableOnly] = useState(false);
 
-  // Fetch parking assignments from backend (admin API)
   useEffect(() => {
     fetchParking();
     // eslint-disable-next-line
@@ -63,8 +58,6 @@ const ParkingPage = () => {
     try {
       const res = await api.get('/api/parking/all');
       const data = res.data;
-
-      // Transform the backend data for table display
       const grouped = {};
       data.forEach(row => {
         const flatKey = `${row.wing} Wing ${row.flat_number}`;
@@ -78,7 +71,6 @@ const ParkingPage = () => {
             parkings: []
           };
         }
-        // Collect vehicles
         if (row.vehicle_id) {
           grouped[flatKey].vehicles.push({
             id: row.vehicle_id,
@@ -91,7 +83,6 @@ const ParkingPage = () => {
             spot_type: row.spot_type
           });
         }
-        // Collect parkings
         if (row.spot_id) {
           grouped[flatKey].parkings.push({
             id: row.spot_id,
@@ -135,7 +126,6 @@ const ParkingPage = () => {
     }
   };
 
-  // Fetch available spots for assignment
   const fetchAvailableSpots = async (type = 'all', assigned = false) => {
     let url = '/api/parking/spots?';
     if (type !== 'all') url += `type=${type}&`;
@@ -149,7 +139,6 @@ const ParkingPage = () => {
     }
   };
 
-  // Open assign dialog for a vehicle
   const handleAssignSpot = (vehicle) => {
     setSelectedVehicle(vehicle);
     setSelectedSpotId('');
@@ -157,14 +146,12 @@ const ParkingPage = () => {
     setAssignDialogOpen(true);
   };
 
-  // Handle spot type filter change in dialog and table
   const handleSpotTypeFilter = (event) => {
     const value = event.target.value;
     setSpotTypeFilter(value);
-    fetchAvailableSpots(value, true); // always want available = true in assign dialog
+    fetchAvailableSpots(value, true);
   };
 
-  // Assign spot to vehicle
   const handleSubmitAssignSpot = async () => {
     if (!selectedSpotId || !selectedVehicle) return;
     try {
@@ -180,7 +167,6 @@ const ParkingPage = () => {
     }
   };
 
-  // Spot filter for all available spots (assign dialog only)
   const handleAvailableFilter = async (e) => {
     setAvailableOnly(e.target.value === "available");
     let type = spotTypeFilter;
@@ -188,20 +174,15 @@ const ParkingPage = () => {
     await fetchAvailableSpots(type, assigned);
   };
 
-  // Pagination handlers
   const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  // Open detailed view dialog
   const handleOpenDetails = (parking) => setSelectedParking(parking);
-
-  // Close detailed view dialog
   const handleCloseDetails = () => setSelectedParking(null);
 
-  // Filter parking data by selected spot type before paginating
   const filteredParkingData = spotTypeFilter === 'all'
     ? parkingData
     : parkingData.filter(flat =>
@@ -214,7 +195,7 @@ const ParkingPage = () => {
   );
 
   return (
-    <Box sx={{ p: 3, height: '100%', overflow: 'auto', backgroundColor: '#fff' }}>
+    <Box sx={{ p: 3, height: '100%', minHeight: '100vh', overflow: 'hidden', backgroundColor: '#fff' }}>
       <Paper 
         elevation={1} 
         sx={{ 
@@ -228,7 +209,8 @@ const ParkingPage = () => {
             boxShadow: 3
           },
           bgcolor: "#fff",
-          borderTop: `3px solid ${SECONDARY_COLOR}`
+          borderTop: `3px solid ${SECONDARY_COLOR}`,
+          overflow: 'visible'
         }}
       >
         <Typography 
@@ -265,8 +247,8 @@ const ParkingPage = () => {
             <CircularProgress color="primary" />
           </Box>
         ) : (
-        <CardContent sx={{ p: 0 }}>
-          <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: 'transparent' }}>
+        <CardContent sx={{ p: 0, overflow: 'visible' }}>
+          <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: 'transparent', boxShadow: 'none', overflow: 'visible' }}>
             <Table>
               <TableHead>
                 <TableRow>
