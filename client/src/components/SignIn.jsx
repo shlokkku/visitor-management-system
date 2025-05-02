@@ -1,28 +1,36 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import Button from './Button';
-import { signin } from '../services/authService';
+import { signin, setupMFA, verifyMFAToken } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [mfaToken, setMfaToken] = useState('');
+  const [requireMFA, setRequireMFA] = useState(false);
+  const [setupMFAMode, setSetupMFAMode] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [userId, setUserId] = useState(null);
+  const [storedCredentials, setStoredCredentials] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const loginSuccess = (data) => {
-    
-    if (data.token) {
-      localStorage.setItem('token', data.token);
+  const handleMFASetup = async (userId) => {
+    try {
+      setLoading(true);
+      const data = await setupMFA(userId);
+      setQrCode(data.qrCode);
+      setSecret(data.secret);
+      setSetupMFAMode(true);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to setup MFA');
+    } finally {
+      setLoading(false);
     }
-    if (data.admin) {
-      localStorage.setItem('user', JSON.stringify(data.admin));
-    }
-    setError('');
-    setTimeout(() => {
-      navigate('/admin'); 
-    }, 2000);
   };
 
   const handleSubmit = async (e) => {
@@ -31,10 +39,72 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const data = await signin(email, password); // Call signin API
-      loginSuccess(data); // Handle successful login
+      if (setupMFAMode) {
+        // Verify the MFA token and enable MFA for the user
+        await verifyMFAToken(mfaToken, userId, true);
+        // After successful verification, try logging in again
+        const loginData = await signin(
+          storedCredentials.email,
+          storedCredentials.password,
+          mfaToken
+        );
+        if (loginData.token && loginData.admin) {
+          navigate('/admin');
+        }
+        return;
+      }
+
+      // Regular login flow with MFA if needed
+      const data = await signin(
+        storedCredentials ? storedCredentials.email : email,
+        storedCredentials ? storedCredentials.password : password,
+        requireMFA ? mfaToken : null
+      );
+      
+      // Handle MFA setup requirement
+      if (data.requireMFA) {
+        if (!data.mfaEnabled) {
+          // Store credentials and start MFA setup
+          setStoredCredentials({ email, password });
+          setUserId(data.userId);
+          await handleMFASetup(data.userId);
+          return;
+        }
+        
+        // MFA is enabled, need token verification
+        setRequireMFA(true);
+        setUserId(data.userId);
+        setStoredCredentials({ email, password });
+        setError(data.message || 'Please enter your authenticator code');
+        setMfaToken('');
+        return;
+      }
+      
+      // Regular login success
+      if (data.token && data.admin) {
+        navigate('/admin');
+        return;
+      }
+      
+      setError('Something went wrong. Please try again.');
     } catch (err) {
-      setError(err.response?.data?.message || 'Unauthorized Access. Please check your credentials.');
+      const errorMessage = err.response?.data?.message || 'An error occurred';
+      setError(errorMessage);
+      
+      if (errorMessage === 'Invalid MFA token') {
+        setMfaToken(''); // Clear invalid token
+      } else {
+        // Reset form for other errors
+        setRequireMFA(false);
+        setSetupMFAMode(false);
+        setStoredCredentials(null);
+        setEmail('');
+        setPassword('');
+        setMfaToken('');
+        setQrCode('');
+        setSecret('');
+        setUserId(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -44,41 +114,87 @@ const SignIn = () => {
     <StyledWrapper>
       <form className="form" onSubmit={handleSubmit}>
         <p className="title">Sign In</p>
-        <p className="message">Sign in to your account</p>
+        <p className="message">
+          {setupMFAMode 
+            ? 'Set up Two-Factor Authentication' 
+            : requireMFA 
+              ? 'Enter Authentication Code' 
+              : 'Sign in to your account'}
+        </p>
         
         {error && <p className="error-message">{error}</p>}
         
-        <label>
-          <input 
-            className="input" 
-            type="email" 
-            placeholder="" 
-            required 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <span>Email</span>
-        </label>
-        
-        <label>
-          <input 
-            className="input" 
-            type="password" 
-            placeholder="" 
-            required 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <span>Password</span>
-        </label>
+        {!requireMFA && !setupMFAMode ? (
+          <>
+            <label>
+              <input 
+                className="input" 
+                type="email" 
+                placeholder="" 
+                required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <span>Email</span>
+            </label>
+            
+            <label>
+              <input 
+                className="input" 
+                type="password" 
+                placeholder="" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <span>Password</span>
+            </label>
+          </>
+        ) : (
+          <>
+            {setupMFAMode && (
+              <div className="mfa-setup">
+                <p>1. Scan this QR code with your authenticator app:</p>
+                {qrCode && <img src={qrCode} alt="MFA QR Code" className="qr-code" />}
+                
+                <div className="secret-key">
+                  <p>2. Or enter this code manually:</p>
+                  <code>{secret}</code>
+                </div>
+                
+                <p className="verification-text">3. Enter the verification code from your app:</p>
+              </div>
+            )}
+            
+            <label>
+              <input 
+                className="input" 
+                type="text" 
+                placeholder="Enter 6-digit code" 
+                required 
+                value={mfaToken}
+                onChange={(e) => setMfaToken(e.target.value)}
+                maxLength={6}
+                pattern="[0-9]{6}"
+              />
+              <span>Authenticator Code</span>
+            </label>
+          </>
+        )}
         
         <button className="submit" disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading 
+            ? 'Please wait...' 
+            : setupMFAMode 
+              ? 'Verify and Enable MFA' 
+              : requireMFA 
+                ? 'Verify Code' 
+                : 'Sign in'}
         </button>
         
         <Button className="google-button" />
         
-        <p className="signup">Do not have an account? <a href="/signup">Sign Up</a></p>
+        <p className="signup">Don't have an account? <a href="/signup">Sign Up</a></p>
       </form>
     </StyledWrapper>
   );
@@ -88,20 +204,20 @@ const StyledWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f5f5f5;
+  padding: 20px;
 
   .form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     width: 405px;
-    max-width: 90%;
+    max-width: 100%;
     background-color: #fff;
-    padding: 50px;
-    border-radius: 35px;
-    position: relative;
-    box-shadow: 40px 4px 105px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   }
 
   .title {
@@ -109,97 +225,123 @@ const StyledWrapper = styled.div`
     color: royalblue;
     font-weight: 600;
     text-align: center;
+    margin-bottom: 10px;
   }
 
-  .message, .signup {
-    color: rgba(88, 87, 87, 0.822);
+  .message {
+    color: #666;
     font-size: 16px;
     text-align: center;
+    margin-bottom: 20px;
   }
 
-  .signup a {
-    color: royalblue;
-  }
-
-  .signup a:hover {
-    text-decoration: underline royalblue;
-  }
-
-  .form label {
+  label {
     position: relative;
+    display: block;
+    margin-bottom: 5px;
   }
 
   .input {
     width: 100%;
-    padding: 20px 12px;
-    border: 1px solid rgba(105, 105, 105, 0.397);
-    border-radius: 10px;
+    padding: 12px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
     font-size: 16px;
-    outline: none;
-    transition: 0.3s ease;
-  }
+    transition: border-color 0.3s ease;
 
-  .input + span {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: grey;
-    font-size: 0.9em;
-    transition: 0.3s ease;
-    pointer-events: none;
-  }
-
-  .input:focus + span, 
-  .input:valid + span {
-    top: 12px;
-    font-size: 0.6em;
-    font-weight: 600;
-    color: #1B0B2C;
+    &:focus {
+      border-color: royalblue;
+      outline: none;
+    }
   }
 
   .submit {
-    border: none;
     background-color: royalblue;
-    padding: 10px;
-    border-radius: 100px;
-    color: #fff;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
     font-size: 16px;
-    transition: 0.3s ease;
     cursor: pointer;
-  }
+    transition: background-color 0.3s ease;
 
-  .submit:hover {
-    background-color: rgb(56, 90, 194);
+    &:hover {
+      background-color: #2145cc;
+    }
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
   }
 
   .error-message {
-    color: red;
-    font-size: 14px;
+    color: #dc3545;
     text-align: center;
-  }
-
-  .google-button {
-    cursor: pointer;
-    color: black;
-    display: flex;
-    gap: 5px;
-    align-items: center;
-    background-color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
     font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
+    margin: 10px 0;
   }
 
-  .google-button:hover {
-    background-color: #e0e0e0;
+  .mfa-setup {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+
+    p {
+      margin: 10px 0;
+      color: #495057;
+    }
+
+    .qr-code {
+      display: block;
+      max-width: 200px;
+      height: auto;
+      margin: 20px auto;
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+    }
+
+    .secret-key {
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+
+      code {
+        display: block;
+        word-break: break-all;
+        margin-top: 5px;
+        font-family: monospace;
+        font-size: 14px;
+        color: #495057;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+      }
+    }
+
+    .verification-text {
+      color: #0066cc;
+      font-weight: 500;
+      margin-top: 20px;
+    }
   }
 
-  .google-icon {
-    width: 24px;
-    height: 24px;
+  .signup {
+    text-align: center;
+    margin-top: 20px;
+    
+    a {
+      color: royalblue;
+      text-decoration: none;
+      font-weight: 500;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 `;
 

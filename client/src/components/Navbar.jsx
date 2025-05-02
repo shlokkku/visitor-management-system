@@ -1,74 +1,101 @@
-import React, { useEffect, useState } from "react";
-import { Box, Avatar, alpha, IconButton } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import AdminNotifications from "./AdminNotifications";
-import { api } from "../services/authService"; 
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+import { logout } from '../services/authService';
 
-const Navbar = ({ toggleSidebar, isMobileView }) => {
-  const secondaryColor = "#3b82f6";
-  const [admin, setAdmin] = useState(null);
-
+const Navbar = () => {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setAdmin(JSON.parse(stored));
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      setUser(JSON.parse(userStr));
+    }
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    navigate('/login');
+  };
+
+  if (!user) return null;
+
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: {
-          xs: "0.5rem 1rem",
-          sm: "0.75rem 1.5rem"
-        },
-        borderBottom: "1px solid #e2e8f0",
-        backgroundColor: "#fff",
-        height: {
-          xs: "56px",
-          sm: "64px"
-        },
-        width: "100%",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        boxSizing: "border-box",
-      }}
-    >
-      {}
-      {isMobileView && (
-        <IconButton 
-          onClick={toggleSidebar}
-          sx={{ 
-            mr: 1,
-            display: { xs: 'flex', md: 'none' },
-            color: "#64748b"
-          }}
-        >
-          <MenuIcon />
-        </IconButton>
-      )}
-      {}
-      <Box sx={{ flex: 1 }} />
-      {}
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <AdminNotifications admin={admin} api={api} />
-        <Avatar 
-          sx={{ 
-            width: { xs: 32, sm: 40 }, 
-            height: { xs: 32, sm: 40 }, 
-            bgcolor: secondaryColor,
-            boxShadow: `0 2px 10px ${alpha(secondaryColor, 0.4)}`,
-            ml: 2
-          }}
-        >
-          {admin?.name?.[0]?.toUpperCase() ?? "A"}
-        </Avatar>
-      </Box>
-    </Box>
+    <StyledNav>
+      <div className="nav-content">
+        <div className="nav-left">
+          <h1>Society Management System</h1>
+        </div>
+        <div className="nav-right">
+          <span className="user-info">
+            Welcome, {user.name || user.email}
+            {user.mfaEnabled && <span className="mfa-badge" title="MFA Enabled">🔒</span>}
+          </span>
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
+        </div>
+      </div>
+    </StyledNav>
   );
 };
+
+const StyledNav = styled.nav`
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .nav-left h1 {
+    font-size: 1.5rem;
+    color: royalblue;
+    margin: 0;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mfa-badge {
+    font-size: 1.2rem;
+    cursor: help;
+  }
+
+  .logout-btn {
+    padding: 0.5rem 1rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #c82333;
+    }
+  }
+`;
 
 export default Navbar;

@@ -16,10 +16,7 @@ import {
   ParkingPage,
   CommunicationPage,
   Complaints,
-  NoticesBoard,
-  PendingsDues
-} from "../pages";
-import { api } from "../services/authService";
+} from "../pages"
 
 // Unauthorized Page
 const Unauthorized = () => (
@@ -218,9 +215,6 @@ function App() {
             <Route path="parking" element={<ParkingPage />} />
             <Route path="communications" element={<CommunicationPage />} />
             <Route path="complaints" element={<Complaints />} />
-            <Route path="notices" element={<NoticesBoard />} />
-            <Route path="pending-dues" element={<PendingsDues />} />
-            <Route path="profile" element={<AdminProfile />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
