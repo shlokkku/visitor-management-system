@@ -2,19 +2,33 @@ const parkingModel = require('../models/parkingModel');
 const vehicleModel = require('../models/vehicleModel');
 const db = require('../config/db');
 
-// Resident: View my parking and vehicles
+// Resident: View my parking and vehicles, showing spot assignment per vehicle
 exports.getMyParking = async (req, res) => {
   try {
     const flat_id = req.user.linked_id;
-    const spots = await parkingModel.getSpotsByFlat(flat_id);
-    const vehicles = await vehicleModel.getVehiclesByFlat(flat_id);
+
+    // Get all vehicles with assigned spot info (if any)
+    const [vehicles] = await db.execute(
+      `SELECT v.*, ps.spot_number AS assigned_spot_number, ps.spot_type AS assigned_spot_type
+       FROM Vehicles v
+       LEFT JOIN ParkingSpots ps ON ps.assigned_vehicle_id = v.id
+       WHERE v.flat_id = ?`,
+      [flat_id]
+    );
+
+    // Get all spots for this resident
+    const [spots] = await db.execute(
+      `SELECT * FROM ParkingSpots WHERE assigned_flat_id = ?`,
+      [flat_id]
+    );
+
     res.json({ spots, vehicles });
   } catch (err) {
     res.status(500).json({ message: "Error fetching parking info", error: err.message });
   }
 };
 
-// Resident: Add vehicle & auto-assign primary parking if available
+// Resident: Add vehicle & auto-assign primary parking if available (and vacant)
 exports.addVehicle = async (req, res) => {
   try {
     const flat_id = req.user.linked_id;
@@ -23,30 +37,38 @@ exports.addVehicle = async (req, res) => {
       flat_id, vehicle_type, vehicle_make, vehicle_model, license_plate, color
     });
 
-    // Try to auto-assign the primary spot
+    // Only assign primary spot if not already occupied
     const primarySpot = await parkingModel.getPrimarySpotByFlat(flat_id);
+    // If primary spot is not assigned, assign it to the new vehicle
     if (primarySpot && !primarySpot.is_assigned) {
       await parkingModel.assignSpot(primarySpot.id, vehicleId, flat_id);
       return res.status(201).json({ id: vehicleId, message: "Vehicle added and primary spot assigned." });
     }
 
-    res.status(201).json({ id: vehicleId, message: "Vehicle added. Please contact admin for parking spot assignment." });
+    res.status(201).json({ id: vehicleId, message: "Vehicle added. Please contact admin for extra parking spot assignment." });
   } catch (err) {
     res.status(400).json({ message: err.message || "Error adding vehicle" });
   }
 };
 
-// Resident: List my vehicles
+// Resident: List my vehicles (with their assigned spot if any)
 exports.getMyVehicles = async (req, res) => {
   try {
-    const vehicles = await vehicleModel.getVehiclesByFlat(req.user.linked_id);
+    const flat_id = req.user.linked_id;
+    const [vehicles] = await db.execute(
+      `SELECT v.*, ps.spot_number AS assigned_spot_number, ps.spot_type AS assigned_spot_type
+       FROM Vehicles v
+       LEFT JOIN ParkingSpots ps ON ps.assigned_vehicle_id = v.id
+       WHERE v.flat_id = ?`,
+      [flat_id]
+    );
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ message: "Error fetching vehicles", error: err.message });
   }
 };
 
-// Resident: Remove my vehicle (optional, also unassigns parking)
+// Resident: Remove my vehicle (also unassigns parking)
 exports.removeVehicle = async (req, res) => {
   try {
     const { vehicle_id } = req.params;
@@ -61,7 +83,7 @@ exports.removeVehicle = async (req, res) => {
   }
 };
 
-// Admin: View all parking assignments
+// Admin: View all parking assignments (residents, spots, and vehicles)
 exports.getAllParking = async (req, res) => {
   try {
     const [rows] = await db.execute(`
@@ -115,7 +137,7 @@ exports.assignSpot = async (req, res) => {
   }
 };
 
-// Admin: Unassign a spot (optional)
+// Admin: Unassign a spot
 exports.unassignSpot = async (req, res) => {
   try {
     const { spot_id } = req.body;
