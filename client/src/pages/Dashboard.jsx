@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Box, Grid, Paper, useTheme } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -9,6 +9,8 @@ import ActivityListContainer from "../components/ActivityListContainer";
 import NoticeBoard from "../components/NoticeBoard";
 import PendingDues from "../components/PendingDues";
 import UnresolvedComplaintsStat from "../components/UnresolvedComplaintsStat";
+// 1. Import AlertPopup at the top
+import AlertPopup from "../components/AlertPopup";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -41,6 +43,9 @@ const Dashboard = () => {
         boxSizing: "border-box",
       }}
     >
+      {/* 2. Add AlertPopup as a top-level child for real-time alert popups */}
+      <AlertPopup />
+
       {/* Dashboard Stats */}
       <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3 } }}>
         {/* Total Tenants */}

@@ -1,21 +1,17 @@
-import { Box, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material"
-import { NavLink } from "react-router-dom"
-import DashboardIcon from "@mui/icons-material/Dashboard"
-import PeopleIcon from "@mui/icons-material/People"
-import ReportIcon from "@mui/icons-material/Report"
-import NotificationsIcon from "@mui/icons-material/Notifications"
-import SecurityIcon from "@mui/icons-material/Security"
-import SettingsIcon from "@mui/icons-material/Settings"
-import DescriptionIcon from "@mui/icons-material/Description"
+import { Box, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import { NavLink } from "react-router-dom";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PeopleIcon from "@mui/icons-material/People";
+import ReportIcon from "@mui/icons-material/Report";
+import SecurityIcon from "@mui/icons-material/Security";
+import SettingsIcon from "@mui/icons-material/Settings";
+import DescriptionIcon from "@mui/icons-material/Description";
 import AnnouncementIcon from '@mui/icons-material/Announcement';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import GridViewIcon from "@mui/icons-material/GridView"
+import GridViewIcon from "@mui/icons-material/GridView";
 
 const Sidebar = ({ isMobile }) => {
-  // Modern color scheme
-  const bgGradient = "linear-gradient(180deg, #1e293b, #334155)"
-
-  // Define menu items with properly assigned icons
+  const bgGradient = "linear-gradient(180deg, #1e293b, #334155)";
   const menuItems = [
     { name: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
     { name: "Tenants", icon: <PeopleIcon />, path: "/admin/tenant-management" },
@@ -23,9 +19,9 @@ const Sidebar = ({ isMobile }) => {
     { name: "ParkingLot", icon: <SecurityIcon />, path: "/admin/parking" },
     { name: "Settings", icon: <SettingsIcon />, path: "/admin/settings" },
     { name: "Legal Documents", icon: <DescriptionIcon />, path: "/admin/legal-documents" },
-    { name: "Pending Dues", icon: < AccountBalanceWalletIcon/> , path: "/admin/pending-dues"},
-    { name: "Notice Board", icon: <AnnouncementIcon />, path: "/admin/notices"}
-  ]
+    { name: "Pending Dues", icon: <AccountBalanceWalletIcon/>, path: "/admin/pending-dues" },
+    { name: "Notice Board", icon: <AnnouncementIcon />, path: "/admin/notices" }
+  ];
 
   return (
     <Box
@@ -40,7 +36,6 @@ const Sidebar = ({ isMobile }) => {
         overflowX: "hidden",
       }}
     >
-      {/* App Logo and Title */}
       <Box
         sx={{
           display: "flex",
@@ -68,8 +63,6 @@ const Sidebar = ({ isMobile }) => {
           Admin Panel
         </Typography>
       </Box>
-
-      {/* Navigation menu */}
       <List sx={{ width: "100%", padding: "12px 0" }}>
         {menuItems.map((item, index) => (
           <ListItem
@@ -129,7 +122,7 @@ const Sidebar = ({ isMobile }) => {
         ))}
       </List>
     </Box>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

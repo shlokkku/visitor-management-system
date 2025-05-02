@@ -12,12 +12,12 @@ const residentRoutes = require('./routes/residents');
 const complaintsRoutes = require('./routes/complaints');
 const parkingRoutes = require('./routes/parking');
 const documentRoutes = require('./routes/documents');
+const alertRoutes = require('./routes/alert'); // <-- add this line
 require('dotenv').config();
 
 // --------- ADD THIS BLOCK AT THE VERY TOP (after require statements) ---------
 const fs = require('fs');
 const path = require('path');
-// Ensure uploads/documents directory exists for multer
 const uploadDir = path.join(__dirname, 'uploads', 'documents');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -39,7 +39,16 @@ const app = express();
 const http = require('http');
 const socketIo = require('socket.io');
 const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: process.env.CLIENT_URL } });
+const io = socketIo(server, {
+  cors: {
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Make io available in controllers
+app.set("io", io);
 
 // Middleware
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
@@ -47,24 +56,26 @@ app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 
-// Attach Socket.IO to requests
+// Attach Socket.IO to requests (optional, if you want to access via req.io)
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
 // Routes
-app.use('/api/auth', authRoutes); // Authentication routes (Resident, Admin, Guard)
-app.use('/api/dues', duesRoutes); // Dues-related routes
-app.use('/api/notices', noticeRoutes); // Notices-related routes
-app.use('/api/visitorlogs', visitorLogRoutes); // Visitor log routes
-app.use('/api/guards', guardRoutes); // Guard-related routes
-app.use('/api/residents', residentRoutes); // Resident-related routes
+app.use('/api/auth', authRoutes);
+app.use('/api/dues', duesRoutes);
+app.use('/api/notices', noticeRoutes);
+app.use('/api/visitorlogs', visitorLogRoutes);
+app.use('/api/guards', guardRoutes);
+app.use('/api/residents', residentRoutes);
 app.use('/api/complaints', complaintsRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/parking', parkingRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/alerts', alertRoutes); // <-- add this line
 app.get('/', (req, res) => res.send('Society Parking API'));
+
 // Handle unhandled routes
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });
@@ -76,12 +87,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
-
-// Socket.IO events
+// --- Socket.IO events for joining rooms for real-time notifications ---
 io.on('connection', (socket) => {
-  console.log('Client connected');
+  console.log('Client connected:', socket.id);
+
+  // After login, client should send their role: socket.emit('join-role', 'Admin'/'Guard')
+  socket.on('join-role', (role) => {
+    if (role === 'Admin') socket.join('admins');
+    if (role === 'Guard') socket.join('guards');
+    console.log(`Socket ${socket.id} joined role room: ${role}`);
+  });
+
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    console.log('Client disconnected:', socket.id);
   });
 });
 
