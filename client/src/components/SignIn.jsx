@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import Button from './Button';
 import { signin, setupMFA, verifyMFAToken } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 
@@ -49,6 +48,9 @@ const SignIn = () => {
           mfaToken
         );
         if (loginData.token && loginData.admin) {
+          // Store token and user
+          localStorage.setItem('token', loginData.token);
+          localStorage.setItem('user', JSON.stringify(loginData.admin));
           navigate('/admin');
         }
         return;
@@ -82,6 +84,8 @@ const SignIn = () => {
       
       // Regular login success
       if (data.token && data.admin) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.admin));
         navigate('/admin');
         return;
       }
@@ -191,10 +195,6 @@ const SignIn = () => {
                 ? 'Verify Code' 
                 : 'Sign in'}
         </button>
-        
-        <Button className="google-button" />
-        
-        <p className="signup">Don't have an account? <a href="/signup">Sign Up</a></p>
       </form>
     </StyledWrapper>
   );

@@ -21,13 +21,16 @@ const NoticesBoard = () => {
   const [info, setInfo] = useState("");
   const [search, setSearch] = useState("");
 
-  const fetchNotices = async () => {
+    const fetchNotices = async () => {
     setLoading(true);
     try {
+      console.log("Fetching notices...");
       const res = await api.get("/api/notices");
+      console.log("Notices fetched:", res.data);
       setNotices(res.data);
       setFilteredNotices(res.data);
     } catch (e) {
+      console.error("Failed to fetch notices:", e.response?.status, e.response?.data);
       setInfo("Failed to load notices");
     }
     setLoading(false);

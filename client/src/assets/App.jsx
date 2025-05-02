@@ -9,6 +9,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import Settings from "../pages/Settings";
 import AdminProfile from "../pages/AdminProfile";
+
 import {
   Dashboard as AdminDashboard,
   LegalDocuments,
@@ -16,8 +17,10 @@ import {
   ParkingPage,
   CommunicationPage,
   Complaints,
+  NoticesBoard,
+  PendingsDues
 } from "../pages"
-
+import { api } from "../services/authService";
 // Unauthorized Page
 const Unauthorized = () => (
   <div
@@ -216,6 +219,9 @@ function App() {
             <Route path="communications" element={<CommunicationPage />} />
             <Route path="complaints" element={<Complaints />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="notices" element={<NoticesBoard />} />
+            <Route path="pending-dues" element={<PendingsDues />} />
+            <Route path="profile" element={<AdminProfile />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/signin" replace />} />

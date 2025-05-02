@@ -161,4 +161,4 @@ const PendingDues = () => {
   )
 }
 
-export default PendingDues
+export default PendingDues;

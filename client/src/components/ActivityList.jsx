@@ -5,6 +5,7 @@ const ActivityList = ({ activities }) => {
   const primaryColor = "#2c3e50";
   const secondaryColor = "#3498db";
   const lightBg = "rgba(52, 152, 219, 0.08)";
+  const flaggedBorder = "2.5px solid #e74c3c"; // Red color for flagged visitor
 
   return (
     <Paper 
@@ -63,7 +64,7 @@ const ActivityList = ({ activities }) => {
                 padding: { xs: 1.5, sm: 2 },
                 borderRadius: 1,
                 bgcolor: lightBg,
-                border: `1px solid rgba(44, 62, 80, 0.1)`,
+                border: item.suspicious ? flaggedBorder : `1px solid rgba(44, 62, 80, 0.1)`,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                 display: "flex",
                 flexDirection: { xs: "column", sm: "row" },
@@ -73,7 +74,9 @@ const ActivityList = ({ activities }) => {
                 transition: "all 0.2s ease",
                 "&:hover": {
                   boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                  borderLeft: `3px solid ${secondaryColor}`
+                  borderLeft: item.suspicious 
+                    ? flaggedBorder 
+                    : `3px solid ${secondaryColor}`
                 }
               }}
             >
@@ -83,26 +86,31 @@ const ActivityList = ({ activities }) => {
                 mb: { xs: 1, sm: 0 }
               }}>
                 <Box sx={{
-                  width: { xs: 32, sm: 40 },
+                  minWidth: { xs: 70, sm: 90 },
+                  maxWidth: { xs: 120, sm: 160 },
                   height: { xs: 32, sm: 40 },
-                  borderRadius: 1,
+                  borderRadius: '8px',
                   bgcolor: `rgba(52, 152, 219, 0.2)`,
                   border: `1px solid ${secondaryColor}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  mr: 2
+                  mr: 2,
+                  px: 1.5,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}>
                   <Typography sx={{ 
                     color: primaryColor, 
-                    fontWeight: "medium",
-                    fontSize: { xs: "0.75rem", sm: "0.875rem" }
-                  }}>
+                    fontWeight: 500,
+                    fontSize: { xs: "0.82rem", sm: "0.96rem" }
+                  }} noWrap>
                     {item.name}
                   </Typography>
                 </Box>
                 <Typography variant="body1" color={primaryColor} sx={{
-                  fontSize: { xs: "0.875rem", sm: "1rem" }
+                  fontSize: { xs: "0.93rem", sm: "1rem" }
                 }}>
                   {item.type} - {item.status}
                 </Typography>
@@ -111,7 +119,12 @@ const ActivityList = ({ activities }) => {
                 fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 mt: { xs: 1, sm: 0 }
               }}>
-
+                {/* You can add more detail here if needed */}
+                {item.suspicious && (
+                  <Typography sx={{ color: "#e74c3c", fontWeight: 600 }}>
+                    Flagged Visitor
+                  </Typography>
+                )}
               </Typography>
             </Box>
           ))

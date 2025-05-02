@@ -12,6 +12,9 @@ import PendingDues from "../components/PendingDues";
 import AlertPopup from "../components/AlertPopup";
 import { api } from "../services/authService";
 
+const NAVBAR_HEIGHT_MOBILE = 56; // px
+const NAVBAR_HEIGHT_DESKTOP = 64; // px
+
 const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -19,14 +22,12 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-   
     api.get("/api/admin/stats/overview")
       .then(res => setStats(res.data))
       .catch(() => setStats(null))
       .finally(() => setLoading(false));
   }, []);
 
-  
   const dueItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const displayedDueItems = isMobile ? dueItems.slice(0, 5) : dueItems;
 
@@ -36,14 +37,10 @@ const Dashboard = () => {
       sx={{
         width: "100%",
         height: "100%",
-        padding: {
-          xs: theme.spacing(2),
-          sm: theme.spacing(3),
-        },
-        paddingBottom: {
-          xs: theme.spacing(3),
-          sm: theme.spacing(4),
-        },
+        paddingTop: { xs: `${NAVBAR_HEIGHT_MOBILE}px`, sm: `${NAVBAR_HEIGHT_DESKTOP}px` }, // Only this!
+        paddingLeft: { xs: 2, sm: 3 },
+        paddingRight: { xs: 2, sm: 3 },
+        paddingBottom: { xs: 3, sm: 4 },
         bgcolor: "#f8f9fa",
         boxSizing: "border-box",
       }}

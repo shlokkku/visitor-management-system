@@ -1,29 +1,70 @@
 const VisitorLog = require('../models/VisitorLog.mongo');
-const { getResidentByFlatId } = require('../models/Resident.mysql');
 const mongoose = require('mongoose');
 
+// MongoDB native driver for image storing
+const { MongoClient, ObjectId } = require('mongodb');
+const mongoUrl = 'mongodb://localhost:27017';
+const dbName = 'yourMongoDb'; // change to your MongoDB database name
+const imageCollection = 'visitorImages';
 
 exports.getVisitorLogs = async (req, res) => {
   try {
     const logs = await VisitorLog.find().sort({ entry_time: -1 }).limit(100);
-    res.json(logs);
+    res.json(logs); // flat_id will be included as a virtual field
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching logs' });
   }
 };
 
+// expects req.file (image upload, see routes)
 exports.createVisitorLog = async (req, res) => {
   try {
-    const { visitor_id, name, contact_info, type, flat_id, purpose } = req.body;
-
-    if (!visitor_id || !name || !contact_info || !type || !flat_id) {
-      return res.status(400).json({ message: 'All fields are required, including flat ID.' });
+    // If an image is uploaded, save to MongoDB via native driver, store image_id
+    let image_id = null;
+    if (req.file && req.file.buffer && req.file.mimetype.startsWith('image/')) {
+      const base64Image = req.file.buffer.toString('base64');
+      let client;
+      try {
+        client = await MongoClient.connect(mongoUrl);
+        const db = client.db(dbName);
+        const result = await db.collection(imageCollection).insertOne({
+          image: base64Image,
+          fileType: req.file.mimetype,
+          uploadedAt: new Date(),
+        });
+        image_id = result.insertedId.toString();
+      } finally {
+        if (client) client.close();
+      }
     }
 
-    const resident = await getResidentByFlatId(flat_id);
-    if (!resident) {
-      return res.status(404).json({ message: 'Flat not found.' });
+    // Extract the rest of the fields from req.body
+    const {
+      visitor_id,
+      name,
+      contact_info,
+      type,
+      resident_name,
+      wing,
+      flat_no,
+      purpose,
+      visit_date,
+      expected_checkout_time,
+    } = req.body;
+
+    // Remove flat_id from validation and object creation
+    if (
+      !visitor_id ||
+      !name ||
+      !contact_info ||
+      !type ||
+      !resident_name ||
+      !wing ||
+      !flat_no ||
+      !visit_date
+    ) {
+      return res.status(400).json({ message: 'All fields are required except expected_checkout_time and image.' });
     }
 
     const log = new VisitorLog({
@@ -31,14 +72,20 @@ exports.createVisitorLog = async (req, res) => {
       name,
       contact_info,
       type,
-      flat_id,
+      resident_name,
+      wing,
+      flat_no,
       purpose,
+      visit_date,
+      visit_time: new Date(), // auto-added
+      expected_checkout_time: expected_checkout_time || null,
+      image_id: image_id, // store MongoDB image ID or null
       status: 'Pending',
     });
 
     await log.save();
 
-    res.status(201).json(log);
+    res.status(201).json(log); // flat_id will be included as a virtual field
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error creating visitor log.', error: error.message });
@@ -64,23 +111,31 @@ exports.updateVisitorStatus = async (req, res) => {
       return res.status(404).json({ message: 'Visitor log not found.' });
     }
 
-
     log.status = status;
-
-
-    if (status === 'CheckedIn') {
-      log.entry_time = new Date();
-    }
-    if (status === 'CheckedOut') {
-      log.exit_time = new Date();
-    }
-
+    if (status === 'CheckedIn') log.entry_time = new Date();
+    if (status === 'CheckedOut') log.exit_time = new Date();
 
     log.events.push({
       action: status.toLowerCase(),
       timestamp: new Date(),
       by: updated_by,
     });
+
+    // If Denied, check denial count and set suspicious if ≥ 3
+    if (status === 'Denied') {
+      const deniedCount = await VisitorLog.countDocuments({
+        visitor_id: log.visitor_id,
+        status: 'Denied',
+      });
+
+      if (deniedCount + 1 >= 3) { // +1 for current denial
+        await VisitorLog.updateMany(
+          { visitor_id: log.visitor_id },
+          { $set: { suspicious: true } }
+        );
+        log.suspicious = true;
+      }
+    }
 
     await log.save();
 

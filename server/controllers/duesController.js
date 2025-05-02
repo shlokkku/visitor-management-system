@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 
-const isAdmin = (req) => req.user && req.user.user_type === 'Admin';
+const isAdmin = (req) => req.user && req.user.user_type?.toLowerCase() === 'admin';
 
 
 const isResident = (req, residentId) => req.user && req.user.user_type === 'Resident' && req.user.linked_id === parseInt(residentId);

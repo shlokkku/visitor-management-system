@@ -9,7 +9,6 @@ const api = axios.create({
   },
 });
 
-
 api.interceptors.request.use(
   (config) => {
     console.log('Request intercepted:', config);
