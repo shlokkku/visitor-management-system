@@ -14,27 +14,25 @@ const parkingRoutes = require('./routes/parking');
 const documentRoutes = require('./routes/documents');
 const alertRoutes = require('./routes/alert');
 const adminRoutes = require('./routes/admin');
-const notificationsRoutes = require('./routes/notifications'); 
-const devicesRoutes = require('./routes/devices'); 
+const notificationsRoutes = require('./routes/notifications');
+const devicesRoutes = require('./routes/devices');
 const adminStatsRoutes = require('./routes/adminStats');
 
 require('dotenv').config();
 
-
 const fs = require('fs');
 const path = require('path');
+
+// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads', 'documents');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Ensure required environment variables are defined
 if (!process.env.CLIENT_URL) {
   throw new Error('CLIENT_URL is not defined in environment variables');
 }
-if (!process.env.PORT) {
-  console.warn('PORT is not defined in environment variables. Using default port 5000.');
-}
-
 
 connectMongo();
 
@@ -44,52 +42,43 @@ const socketIo = require('socket.io');
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: process.env.CLIENT_URL, // Use CLIENT_URL for Socket.IO
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
-
 
 app.set("io", io);
 
-
-
 // Allowed origins
-
 const allowedOrigins = [
-  'http://localhost:5173', // Local development frontend
-  'https://pbl2-102i9t2gi-shlokkkus-projects.vercel.app', // Deployed frontend
+  'http://localhost:5173',
+  'https://pbl2-102i9t2gi-shlokkkus-projects.vercel.app',
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or Postman)
-    if (!origin) return callback(null, true);
-
-    // Allow only specified origins
-    if (allowedOrigins.includes(origin)) {
+    const vercelDomainRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
+    if (!origin || allowedOrigins.includes(origin) || vercelDomainRegex.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Allow cookies and authorization headers
+  credentials: true,
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
-
 
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-
+// Define routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dues', duesRoutes);
 app.use('/api/notices', noticeRoutes);
@@ -103,23 +92,24 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/stats', adminStatsRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/devices', devicesRoutes);
 
-app.use('/api/notifications', notificationsRoutes); 
-app.use('/api/devices', devicesRoutes); 
-
+// Root route
 app.get('/', (req, res) => res.send('Society Parking API'));
 
-
+// Handle 404 errors
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
-
+// Socket.IO events
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
@@ -127,7 +117,6 @@ io.on('connection', (socket) => {
     socket.join(`user_${userId}`);
     console.log(`Socket ${socket.id} joined user room: user_${userId}`);
   });
-
 
   socket.on('join-role', (role) => {
     if (role === 'Admin') socket.join('admins');
@@ -141,6 +130,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
