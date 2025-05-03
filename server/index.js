@@ -54,7 +54,6 @@ const io = socketIo(server, {
 app.set("io", io);
 
 
-const cors = require('cors');
 
 // Allowed origins
 const allowedOrigins = [
