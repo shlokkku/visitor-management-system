@@ -14,71 +14,91 @@ const parkingRoutes = require('./routes/parking');
 const documentRoutes = require('./routes/documents');
 const alertRoutes = require('./routes/alert');
 const adminRoutes = require('./routes/admin');
-const notificationsRoutes = require('./routes/notifications');
-const devicesRoutes = require('./routes/devices');
+const notificationsRoutes = require('./routes/notifications'); 
+const devicesRoutes = require('./routes/devices'); 
 const adminStatsRoutes = require('./routes/adminStats');
 
 require('dotenv').config();
-
 const fs = require('fs');
 const path = require('path');
-
-// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads', 'documents');
+
+// Ensure the upload directory exists
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Ensure required environment variables are defined
+// Check for required environment variables
 if (!process.env.CLIENT_URL) {
   throw new Error('CLIENT_URL is not defined in environment variables');
 }
+if (!process.env.PORT) {
+  console.warn('PORT is not defined in environment variables. Using default port 5000.');
+}
 
+// Connect to MongoDB
 connectMongo();
 
 const app = express();
 const http = require('http');
 const socketIo = require('socket.io');
 const server = http.createServer(app);
+
+// Socket.IO Configuration with Dynamic CORS
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL, // Use CLIENT_URL for Socket.IO
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:5173', // Local development
+        /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/, // Allow all Vercel subdomains
+      ];
+
+      // Check if the origin matches any of the allowed origins
+      if (!origin || allowedOrigins.some((o) => (typeof o === 'string' ? o === origin : o.test(origin)))) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
+// Allow access to Socket.IO instance in routes
 app.set("io", io);
 
-// Allowed origins
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://pbl2-102i9t2gi-shlokkkus-projects.vercel.app',
-];
-
+// Express CORS Middleware Configuration
 const corsOptions = {
   origin: (origin, callback) => {
-    const vercelDomainRegex = /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/;
-    if (!origin || allowedOrigins.includes(origin) || vercelDomainRegex.test(origin)) {
+    const allowedOrigins = [
+      'http://localhost:5173', // Local development
+      /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/, // Allow all Vercel subdomains
+    ];
+
+    // Dynamically check if the origin is allowed
+    if (!origin || allowedOrigins.some((o) => (typeof o === 'string' ? o === origin : o.test(origin)))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
+  credentials: true, // Allow cookies and authorization headers
 };
 
+// Apply Middleware
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 
+// Middleware to attach Socket.IO to requests
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-// Define routes
+// Route Definitions
 app.use('/api/auth', authRoutes);
 app.use('/api/dues', duesRoutes);
 app.use('/api/notices', noticeRoutes);
@@ -92,24 +112,24 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/stats', adminStatsRoutes);
-app.use('/api/notifications', notificationsRoutes);
-app.use('/api/devices', devicesRoutes);
+app.use('/api/notifications', notificationsRoutes); 
+app.use('/api/devices', devicesRoutes); 
 
-// Root route
+// Root Route
 app.get('/', (req, res) => res.send('Society Parking API'));
 
-// Handle 404 errors
+// Handle 404 Errors
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Error handler
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
-// Socket.IO events
+// Socket.IO Event Handling
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
@@ -130,7 +150,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start server
+// Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
