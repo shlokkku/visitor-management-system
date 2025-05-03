@@ -54,7 +54,30 @@ const io = socketIo(server, {
 app.set("io", io);
 
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+const cors = require('cors');
+
+// Allowed origins
+const allowedOrigins = [
+  'http://localhost:5173', // Local Dev Frontend
+  'https://pbl2-lovat.vercel.app', // Deployed Frontend
+];
+
+// CORS Middleware
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true, // Allow cookies and auth headers
+  })
+);
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
