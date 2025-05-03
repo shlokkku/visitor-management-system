@@ -56,27 +56,29 @@ app.set("io", io);
 
 
 // Allowed origins
+
 const allowedOrigins = [
-  'http://localhost:5173', // Local Dev Frontend
-  'https://pbl2-lovat.vercel.app', // Deployed Frontend
+  'http://localhost:5173', // Local development frontend
+  'https://pbl2-102i9t2gi-shlokkkus-projects.vercel.app', // Deployed frontend
 ];
 
-// CORS Middleware
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or Postman)
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true, // Allow cookies and auth headers
-  })
-);
+    // Allow only specified origins
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow cookies and authorization headers
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
